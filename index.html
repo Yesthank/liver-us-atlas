@@ -1,0 +1,1002 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>간 초음파 3D 아틀라스</title>
+<meta name="description" content="표준 간·상복부 초음파 17개 영상을 프로브 위치, 3D 해부(Couinaud 분절·혈관), 시뮬레이션 B-mode 영상으로 함께 보여 주는 교육용 페이지">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1a2027; --panel:#202831; --panel2:#252f39; --line:#313c48;
+  --ink:#e4e8ec; --mute:#8d99a5; --faint:#5d6a77;
+  --amber:#f2b54a; --amber-ink:#21180a;
+  --r-s:4px; --r-m:8px;
+  --f: 'IBM Plex Sans KR', system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:14px;line-height:1.5}
+body{display:grid;grid-template-columns:272px minmax(0,1fr) 452px;grid-template-rows:auto minmax(0,1fr);height:100vh;overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+/* header: the current view is the headline */
+header{grid-column:1/-1;display:flex;align-items:flex-end;gap:28px;padding:14px 20px 12px;border-bottom:1px solid var(--line)}
+.brand{font-size:13px;color:var(--mute);line-height:1.35;min-width:232px}
+.brand b{display:block;color:var(--ink);font-weight:600;font-size:15px}
+.now{display:flex;align-items:baseline;gap:14px;min-width:0}
+.now .no{font-size:44px;font-weight:300;line-height:.9;color:var(--amber);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.now .t{min-width:0}
+.now .en{font-size:22px;font-weight:500;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.now .ko{color:var(--mute);font-size:14px}
+header .spacer{flex:1}
+.hbtn{background:none;border:1px solid var(--line);border-radius:var(--r-s);padding:6px 12px;cursor:pointer;color:var(--mute)}
+.hbtn:hover{color:var(--ink);border-color:var(--faint)}
+
+/* view list */
+nav{border-right:1px solid var(--line);overflow:auto;padding:8px 0}
+nav ol{list-style:none;margin:0;padding:0}
+nav button{display:grid;grid-template-columns:30px 1fr;gap:2px 8px;width:100%;text-align:left;background:none;border:0;padding:7px 14px 7px 12px;cursor:pointer;border-left:3px solid transparent}
+nav button:hover{background:var(--panel)}
+nav button .n{grid-row:1/3;font-variant-numeric:tabular-nums;color:var(--faint);font-size:13px;padding-top:1px;text-align:right}
+nav button .a{font-size:13px;line-height:1.3}
+nav button .b{font-size:12px;color:var(--mute);line-height:1.3}
+nav button[aria-current="true"]{background:var(--panel2);border-left-color:var(--amber)}
+nav button[aria-current="true"] .n{color:var(--amber)}
+nav .grp{font-size:12px;color:var(--faint);padding:12px 14px 4px 45px}
+
+/* 3D stage */
+main{position:relative;min-height:0;overflow:hidden;background:radial-gradient(120% 90% at 50% 35%,#26303b 0%,#1a2027 70%)}
+#gl{position:absolute;inset:0}
+#gl canvas{display:block}
+.seglab{font-size:12px;font-weight:600;color:#1b1f24;padding:1px 6px;border-radius:10px;opacity:.35;transition:opacity .3s;pointer-events:none}
+.seglab.on{opacity:1;box-shadow:0 0 0 2px rgba(255,255,255,.75)}
+.sidelab{font-size:12px;color:var(--mute);pointer-events:none}
+.legend{position:absolute;left:14px;top:12px;display:flex;flex-direction:column;gap:6px;font-size:12px;max-width:220px}
+.legend .row{display:flex;flex-wrap:wrap;gap:4px}
+.legend .seg{width:26px;text-align:center;border-radius:3px;color:#1b1f24;font-weight:600;padding:1px 0}
+.legend .key{display:flex;align-items:center;gap:6px;color:var(--mute)}
+.legend .sw{width:14px;height:4px;border-radius:2px}
+.dock{position:absolute;left:12px;right:12px;bottom:12px;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;background:rgba(26,32,39,.86);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:var(--r-m);padding:10px 14px}
+.dock .grp{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-s);padding:5px 11px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--faint)}
+.btn.primary{background:var(--amber);color:var(--amber-ink);border-color:var(--amber);font-weight:500}
+.btn[aria-pressed="true"]{border-color:var(--amber);color:var(--amber)}
+.sl{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mute);white-space:nowrap}
+.sl input{width:92px;accent-color:var(--amber)}
+.sl output{width:38px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.tg{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--mute);cursor:pointer;user-select:none;white-space:nowrap}
+.tg input{accent-color:var(--amber);margin:0}
+.hint{position:absolute;right:14px;top:12px;font-size:12px;color:var(--faint);text-align:right}
+
+/* scan panel */
+aside{border-left:1px solid var(--line);overflow:auto;padding:14px 16px 24px;display:flex;flex-direction:column;gap:16px}
+.us{background:#000;border-radius:var(--r-m);overflow:hidden;position:relative}
+.us canvas{display:block;width:100%;height:auto}
+.usbar{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:8px 10px;background:#0d1115;border-top:1px solid #1f262e;font-size:12px;color:var(--mute)}
+.usbar .sl input{width:70px}
+.orient{font-size:12px;color:var(--mute);margin-top:-8px}
+.orient b{color:var(--amber);font-weight:500}
+h2{font-size:13px;font-weight:500;color:var(--mute);margin:0 0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:2px 8px 2px 6px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}
+.chip i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.chip.seg{color:#1b1f24;border:0;font-weight:600;padding:2px 9px}
+.real{margin:0;border:1px dashed var(--line);border-radius:var(--r-m);min-height:120px;display:grid;place-items:center;position:relative;overflow:hidden;background:#0d1115}
+.real img{display:block;width:100%;height:auto}
+.real p{margin:0;padding:18px;font-size:12px;color:var(--mute);text-align:center;line-height:1.6}
+.real.drag{border-color:var(--amber)}
+.real code{color:var(--ink);font-size:12px}
+.real .clear{position:absolute;right:6px;top:6px;font-size:11px;padding:2px 8px;display:none}
+.real.has .clear{display:block}
+dl{margin:0;display:grid;grid-template-columns:62px 1fr;gap:6px 10px;font-size:13px}
+dt{color:var(--mute)}
+dd{margin:0}
+ul.check{margin:0;padding-left:18px;font-size:13px}
+ul.check li{margin:2px 0}
+.note{font-size:11.5px;color:var(--faint);line-height:1.55}
+.note a{color:var(--mute)}
+
+#loading{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);z-index:10;color:var(--mute);font-size:14px}
+#loading.done{display:none}
+#loading .err{color:#ff8a80;max-width:520px;text-align:center}
+
+dialog{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-m);max-width:620px;padding:20px 24px}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog h3{margin:0 0 10px;font-size:16px;font-weight:600}
+dialog p,dialog li{font-size:13px;color:#c9d0d6;line-height:1.65}
+
+@media (max-width:1180px){
+  body{grid-template-columns:1fr;grid-template-rows:auto auto 62vh auto;height:auto;overflow:auto}
+  nav{border-right:0;border-bottom:1px solid var(--line);overflow-x:auto;padding:0}
+  nav ol{display:flex}
+  nav li{flex:0 0 auto}
+  nav .grp{display:none}
+  nav button{width:200px;border-left:0;border-bottom:3px solid transparent}
+  nav button[aria-current="true"]{border-bottom-color:var(--amber)}
+  aside{border-left:0}
+  .dock{position:static;margin:0;border-radius:0;border-left:0;border-right:0}
+  main{display:flex;flex-direction:column}
+  #gl{position:relative;flex:1;min-height:0}
+  header{flex-wrap:wrap;gap:10px 20px;padding:12px 16px}
+  .now .en{white-space:normal;font-size:19px}
+  .now .no{font-size:36px}
+}
+@media (max-width:560px){
+  .legend{display:none}
+  .hint{display:none}
+  .dock{padding:10px 16px}
+  .sl input{width:84px}
+  aside{padding:12px 16px 24px}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+}}
+</script>
+<script src="data/anatomy.js"></script>
+<script src="views.js"></script>
+</head>
+<body>
+<div id="loading"><div id="loadmsg">해부 데이터를 불러오는 중…</div></div>
+
+<header>
+  <div class="brand"><b>간 초음파 3D 아틀라스</b>표준영상 17개 · 프로브와 단면</div>
+  <div class="now" aria-live="polite"><span class="no" id="vNo">1</span><div class="t"><div class="en" id="vEn"></div><div class="ko" id="vKo"></div></div></div>
+  <div class="spacer"></div>
+  <button class="hbtn" id="aboutBtn">자료와 한계</button>
+</header>
+
+<nav aria-label="표준영상 목록"><ol id="viewList"></ol></nav>
+
+<main>
+  <div id="gl"></div>
+  <div class="legend" id="legend"></div>
+  <div class="hint">드래그 회전 · 휠 확대 · 우클릭 이동<br>← → 영상 넘기기 · Space 스윕</div>
+  <div class="dock">
+    <div class="grp">
+      <button class="btn primary" id="replayBtn" title="프로브를 들었다가 다시 대기">다시 대기</button>
+      <button class="btn" id="sweepBtn" aria-pressed="false" title="프로브를 앞뒤로 기울여 단면이 변하는 모습">스윕</button>
+      <button class="btn" id="tourBtn" aria-pressed="false" title="17개 영상을 차례로 재생">순서대로 재생</button>
+    </div>
+    <div class="grp">
+      <label class="sl">기울기<input type="range" id="tilt" min="-25" max="25" step="1" value="0"><output id="tiltO">0°</output></label>
+      <label class="sl">회전<input type="range" id="rot" min="-45" max="45" step="1" value="0"><output id="rotO">0°</output></label>
+      <label class="sl">밀기<input type="range" id="slide" min="-30" max="30" step="1" value="0"><output id="slideO">0 mm</output></label>
+    </div>
+    <div class="grp">
+      <label class="tg"><input type="checkbox" id="cutT" checked>단면으로 자르기</label>
+      <label class="tg"><input type="checkbox" id="focusT" checked>걸린 구조만 강조</label>
+      <label class="tg"><input type="checkbox" id="fanUsT">단면에 초음파 표시</label>
+      <label class="tg"><input type="checkbox" id="skinT" checked>피부</label>
+      <label class="tg"><input type="checkbox" id="boneT" checked>뼈</label>
+      <label class="tg"><input type="checkbox" id="segLabT" checked>분절 번호</label>
+    </div>
+  </div>
+</main>
+
+<aside>
+  <div>
+    <div class="us">
+      <canvas id="usCanvas" width="520" height="440" aria-label="시뮬레이션 초음파 영상"></canvas>
+      <div class="usbar">
+        <label class="tg"><input type="checkbox" id="usLabT" checked>구조 이름</label>
+        <label class="tg"><input type="checkbox" id="usSegT">분절 색</label>
+        <label class="sl">게인<input type="range" id="gain" min="0.5" max="1.8" step="0.05" value="1"></label>
+        <label class="sl">깊이<input type="range" id="depth" min="100" max="200" step="10" value="150"><output id="depthO">15 cm</output></label>
+      </div>
+    </div>
+  </div>
+  <div class="orient" id="orient"></div>
+  <section>
+    <h2>이 단면에 걸린 구조</h2>
+    <div class="chips" id="chips"></div>
+  </section>
+  <section>
+    <h2>실제 초음파 영상</h2>
+    <figure class="real" id="real">
+      <img id="realImg" alt="" hidden>
+      <p id="realEmpty"></p>
+      <button class="btn clear" id="realClear">지우기</button>
+    </figure>
+  </section>
+  <section>
+    <h2>검사 방법</h2>
+    <dl><dt>프로브</dt><dd id="iProbe"></dd><dt>호흡</dt><dd id="iBreath"></dd></dl>
+  </section>
+  <section>
+    <h2>확인할 것</h2>
+    <ul class="check" id="iCheck"></ul>
+  </section>
+  <p class="note">영상은 3D 모델 단면으로 만든 시뮬레이션입니다. 분절 경계는 간정맥·문맥면 기준의 근사이며 실제 환자의 변이와 다를 수 있습니다. <a href="#" id="aboutLink">자료와 한계</a></p>
+</aside>
+
+<dialog id="about">
+  <h3>자료와 한계</h3>
+  <p><b>3D 해부 자료</b>: BodyParts3D, © The Database Center for Life Science, CC BY-SA 2.1 JP. 장기·혈관 메시는 원본을 단순화했습니다. 이 페이지의 파생 데이터(<code>data/anatomy.js</code>)도 같은 라이선스를 따릅니다.</p>
+  <p><b>Couinaud 분절</b>: 원본의 분절 메시는 라벨이 실제 위치와 어긋나 있어 다시 계산했습니다. 하대정맥 축을 중심으로 우·중간정맥과 제대열의 각도로 구역을 나누고, 문맥면(우측)과 좌간정맥(좌외측)으로 상·하 분절을 나눴습니다. 미상엽(S1)은 원본 미상엽 메시를 사용했습니다.</p>
+  <p><b>초음파 영상</b>: 조직별 에코 강도, 감쇠, 경계면 반사, 스펙클, 뼈·가스 음영, 액체 뒤 후방 증강, 횡격막 거울상을 단순한 규칙으로 흉내 낸 것입니다. 실제 영상의 질감과 인공물을 대신하지 않습니다.</p>
+  <p><b>실제 영상 넣기</b>: <code>us_images/01.jpg</code> ~ <code>17.jpg</code>(또는 .png)를 두면 해당 영상 옆에 자동으로 나타납니다. 영상 칸에 파일을 끌어다 놓아도 이 브라우저에만 저장됩니다.</p>
+  <p><b>표준영상 목록</b>: 사용자가 정한 17개 구성을 따랐습니다. 참고: 대한초음파의학회 상복부 초음파 표준영상(일반 12·정밀 15), 국립암센터 간암 검진 질지침.</p>
+  <form method="dialog"><button class="btn">닫기</button></form>
+</dialog>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+const $ = id => document.getElementById(id);
+const A = window.ANATOMY, VIEWS = window.US_VIEWS;
+const loadmsg = $('loadmsg');
+function fail(msg) { loadmsg.innerHTML = `<div class="err">${msg}</div>`; }
+if (!A || !VIEWS) { fail('data/anatomy.js 또는 views.js를 읽지 못했습니다. index.html과 같은 폴더 구조를 유지해 주세요.'); throw new Error('no data'); }
+
+/* ---------- coordinates: BodyParts3D mm (x=left, y=posterior, z=cranial) -> world cm (x=left, y=up, z=anterior) */
+const S = 0.1, C = A.center, Q = A.q;
+const bp2w = p => new THREE.Vector3((p[0] - C[0]) * S, (p[2] - C[2]) * S, -(p[1] - C[1]) * S);
+const w2bp = v => [v.x / S + C[0], -v.z / S + C[1], v.y / S + C[2]];
+const d2w = d => new THREE.Vector3(d[0], d[2], -d[1]);
+const w2d = v => [v.x, -v.z, v.y];
+const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const mul = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const nrm = a => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+const rotAxis = (v, axis, deg) => { const r = new THREE.Vector3(...v).applyAxisAngle(new THREE.Vector3(...axis), deg * Math.PI / 180); return [r.x, r.y, r.z]; };
+
+async function inflate(b64) {
+  const bin = atob(b64), u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  const stream = new Blob([u]).stream().pipeThrough(new DecompressionStream('deflate'));
+  return new Response(stream).arrayBuffer();
+}
+
+/* ---------- tissue / structure table keyed by volume label code */
+const LBL = A.labels, INFO = [];
+function def(name, o) {
+  INFO[LBL[name]] = Object.assign({ name, ab: '', ko: '', col: '#555555', echo: .5, att: .5, kind: 0, wall: .25, grp: name, a: .95 }, o);
+}
+// kind: 0 tissue, 1 fluid, 2 bone, 3 air(lung/outside), 4 bowel gas
+def('out', { col: '#000000', echo: 0, att: 5, kind: 3, grp: 'out', a: 0 });
+def('soft', { ko: '지방·결합조직', col: '#4b423e', echo: .55, att: .65, wall: .1, a: .5 });
+def('fat', { ko: '피하지방', col: '#6b5f46', echo: .2, att: .55, wall: .15, a: .5 });
+def('skin', { ko: '피부', col: '#d4b293', echo: .95, att: .9, wall: .3, a: .6 });
+def('muscle', { ko: '복벽 근육', col: '#7c3e37', echo: .38, att: .85, wall: .35, a: .55 });
+const SEGCOL = { 1: '#c4b2a6', 2: '#f09a92', 3: '#f7c47e', 4: '#f6ea7a', 5: '#9fd49b', 6: '#7fcfc6', 7: '#8fbff2', 8: '#c99be0' };
+const SEGKO = { 1: '미상엽', 2: '좌외측 상구역', 3: '좌외측 하구역', 4: '좌내측구역', 5: '우전 하구역', 6: '우후 하구역', 7: '우후 상구역', 8: '우전 상구역' };
+for (let s = 1; s <= 8; s++) def('s' + s, { ab: s === 4 ? 'S4a' : 'S' + s, ko: SEGKO[s], col: SEGCOL[s], echo: .5, att: .5, grp: 'liver', wall: .4, seg: s });
+def('s4b', { ab: 'S4b', ko: SEGKO[4], col: SEGCOL[4], echo: .5, att: .5, grp: 'liver', wall: .4, seg: 4 });
+const PV = { echo: .02, att: .1, kind: 1, wall: .95 }, HV = { echo: .02, att: .1, kind: 1, wall: .12 }, AR = { echo: .03, att: .1, kind: 1, wall: .6 };
+def('mpv', { ...PV, ab: 'MPV', ko: '주문맥', col: '#6a3fc7' });
+def('rpv', { ...PV, ab: 'RPV', ko: '우문맥', col: '#6a3fc7' });
+def('lpv', { ...PV, ab: 'LPV', ko: '좌문맥', col: '#6a3fc7' });
+def('splv', { ...PV, wall: .5, ab: 'SV', ko: '비정맥', col: '#7c55d6' });
+def('smv', { ...PV, wall: .5, ab: 'SMV', ko: '상장간막정맥', col: '#7c55d6' });
+def('rhv', { ...HV, ab: 'RHV', ko: '우간정맥', col: '#1f8ce0' });
+def('mhv', { ...HV, ab: 'MHV', ko: '중간정맥', col: '#1f8ce0' });
+def('lhv', { ...HV, ab: 'LHV', ko: '좌간정맥', col: '#1f8ce0' });
+def('ivc', { ...HV, wall: .3, ab: 'IVC', ko: '하대정맥', col: '#1767b8' });
+def('renv', { ...HV, wall: .3, ab: 'RV', ko: '신정맥', col: '#2a78c9' });
+def('aorta', { ...AR, ab: 'Ao', ko: '대동맥', col: '#e04848' });
+def('celiac', { ...AR, ab: 'CA', ko: '복강동맥·간동맥', col: '#ee6a5f' });
+def('sma', { ...AR, ab: 'SMA', ko: '상장간막동맥', col: '#ee6a5f' });
+def('spla', { ...AR, ab: 'SA', ko: '비동맥', col: '#ee6a5f' });
+def('rena', { ...AR, ab: 'RA', ko: '신동맥', col: '#ee6a5f' });
+def('gb', { ab: 'GB', ko: '담낭', col: '#3f9c47', echo: 0, att: .02, kind: 1, wall: .85 });
+def('bile', { ab: 'CBD', ko: '간외담관', col: '#2a7a34', echo: .02, att: .1, kind: 1, wall: .9 });
+def('pduct', { ab: 'PD', ko: '주췌관', col: '#2a7a34', echo: .05, att: .1, kind: 1, wall: .7 });
+def('pancreas', { ab: 'Panc', ko: '췌장', col: '#efbf88', echo: .66, att: .6, wall: .3 });
+def('spleen', { ab: 'Spl', ko: '비장', col: '#93305a', echo: .55, att: .5, wall: .45 });
+def('rkid', { ab: 'RK', ko: '우신', col: '#a85c4c', echo: .34, att: .5, wall: .5, grp: 'kidney' });
+def('lkid', { ab: 'LK', ko: '좌신', col: '#a85c4c', echo: .34, att: .5, wall: .5, grp: 'kidney' });
+def('sinus', { ko: '신동', col: '#eadbbc', echo: .85, att: .7, wall: .2, grp: 'kidney' });
+def('adrenal', { ab: 'Adr', ko: '부신', col: '#e0a03c', echo: .42, att: .5 });
+def('stomach', { ab: 'St', ko: '위', col: '#ee9fb2', echo: .36, att: .8, wall: .75 });
+def('duod', { ab: 'Duo', ko: '십이지장', col: '#e2869d', echo: .38, att: .8, wall: .65 });
+def('colon', { ab: 'Col', ko: '대장', col: '#c49f7b', echo: .9, att: 5, kind: 4, wall: 1 });
+def('diaph', { ab: '', ko: '횡격막', col: '#d98c6a', echo: 1.05, att: .8, wall: .6 });
+def('psoas', { ab: 'Psoas', ko: '요근', col: '#9a4a40', echo: .42, att: .85 });
+def('ribs', { ab: 'Rib', ko: '늑골', col: '#ece6d8', kind: 2, echo: 1, att: 9, wall: 1.4 });
+def('cart', { ab: '', ko: '늑연골', col: '#c9d2d8', echo: .12, att: 1.6, wall: .5 });
+def('spine', { ab: 'Spine', ko: '척추', col: '#e6dcc6', kind: 2, echo: 1, att: 9, wall: 1.4 });
+def('lung', { ab: 'Lung', ko: '폐(공기)', col: '#2a3550', kind: 3, echo: 0, att: 9, wall: 1.3, a: .55 });
+def('heart', { ab: 'Heart', ko: '심장', col: '#8c2f2f', echo: .2, att: .3, wall: .5 });
+for (let c = 0; c < 256; c++) if (!INFO[c]) INFO[c] = INFO[0];
+const ECHO = new Float32Array(256), ATT = new Float32Array(256), KIND = new Uint8Array(256), WALL = new Float32Array(256), GRP = new Int16Array(256);
+const grpIds = {};
+INFO.forEach((o, c) => { ECHO[c] = o.echo; ATT[c] = o.att; KIND[c] = o.kind; WALL[c] = o.wall; GRP[c] = grpIds[o.grp] ??= Object.keys(grpIds).length; });
+const S1 = LBL.s1, LIVERG = grpIds.liver, S3 = LBL.s3, S4 = LBL.s4, S4B = LBL.s4b;
+
+/* ---------- 3D mesh registry: mesh key -> codes, group, colour */
+const MESHDEF = {
+  seg1: [[LBL.s1], 'liver'], seg2: [[LBL.s2], 'liver'], seg3: [[LBL.s3], 'liver'], seg4: [[LBL.s4, LBL.s4b], 'liver'],
+  seg5: [[LBL.s5], 'liver'], seg6: [[LBL.s6], 'liver'], seg7: [[LBL.s7], 'liver'], seg8: [[LBL.s8], 'liver'],
+  mpv: [[LBL.mpv], 'vessel'], rpv: [[LBL.rpv], 'vessel'], lpv: [[LBL.lpv], 'vessel'], splv: [[LBL.splv], 'vessel'], smv: [[LBL.smv], 'vessel'],
+  rhv: [[LBL.rhv], 'vessel'], mhv: [[LBL.mhv], 'vessel'], lhv: [[LBL.lhv], 'vessel'], ivc: [[LBL.ivc], 'vessel'], renv: [[LBL.renv], 'vessel'],
+  aorta: [[LBL.aorta], 'vessel'], celiac: [[LBL.celiac], 'vessel'], sma: [[LBL.sma], 'vessel'], spla: [[LBL.spla], 'vessel'], rena: [[LBL.rena], 'vessel'],
+  gb: [[LBL.gb], 'organ'], bile: [[LBL.bile], 'vessel'], pduct: [[LBL.pduct], 'vessel'],
+  pancreas: [[LBL.pancreas], 'organ'], spleen: [[LBL.spleen], 'organ'], rkid: [[LBL.rkid], 'organ'], lkid: [[LBL.lkid], 'organ'], adrenal: [[LBL.adrenal], 'organ'],
+  stomach: [[LBL.stomach], 'gi'], duod: [[LBL.duod], 'gi'], colon: [[LBL.colon], 'gi'],
+  diaph: [[LBL.diaph], 'diaph'], psoas: [[LBL.psoas], 'gi'],
+  ribs: [[LBL.ribs], 'bone'], cart: [[LBL.cart], 'bone'], spine: [[LBL.spine], 'bone'], skin: [[], 'skin'],
+};
+const BASE_OP = { liver: .93, vessel: 1, organ: .92, gi: .6, diaph: .22, bone: .92, skin: .1 };
+const DIM_OP = { liver: .13, vessel: .3, organ: .14, gi: .08, diaph: .07, bone: .4, skin: .06 };
+
+/* ---------- volume access */
+let VOLU8, NX, NY, NZ, LO0, LO1, LO2, IP, PITCH;
+function codeAt(x, y, z) {
+  const i = Math.floor((x - LO0) * IP), j = Math.floor((y - LO1) * IP), k = Math.floor((z - LO2) * IP);
+  if (i < 0 || j < 0 || k < 0 || i >= NX || j >= NY || k >= NZ) return 0;
+  return VOLU8[i + NX * (j + NY * k)];
+}
+const codeP = p => codeAt(p[0], p[1], p[2]);
+
+/* ---------- probe pose */
+const RC = 40, FOV = 32 * Math.PI / 180;
+function snapBack(T, D) { // from inside point T march against D until outside the body
+  let p = T.slice();
+  for (let i = 0; i < 400 && codeP(p) !== 0; i++) p = sub(p, D);
+  return add(p, mul(D, 1));
+}
+function snapAlong(P0, D) { // surface where the line through P0 (direction D) enters the body
+  let p = sub(P0, mul(D, 90));
+  for (let i = 0; i < 200 && codeP(p) !== 0; i++) p = sub(p, D);
+  for (let i = 0; i < 400 && codeP(p) === 0; i++) p = add(p, D);
+  return p;
+}
+function basePose(v) {
+  let D, E;
+  if (v.E) { D = nrm(sub(v.T, v.E)); E = snapAlong(v.E, D); }
+  else D = nrm(v.D);
+  let H = v.H.slice();
+  let N = null;
+  if (v.normalAxis) { N = nrm(v.normalAxis); N = nrm(sub(N, mul(D, dot(N, D)))); H = sub(H, mul(N, dot(H, N))); }
+  let L = nrm(sub(H, mul(D, dot(H, D))));
+  if (!v.E) {
+    if (!v.avoidRib) E = snapBack(v.T, D);
+    else {
+      // intercostal window: search sliding (along the plane normal) and rotation about the beam
+      // for the pose whose fan crosses the fewest ribs in the near field
+      let best = null;
+      for (let rot = -20; rot <= 20; rot += 5) {
+        const Lr = rotAxis(L, D, rot), n = nrm(cross(D, Lr));
+        for (let sh = -24; sh <= 24; sh += 3) {
+          const e = snapBack(add(v.T, mul(n, sh)), D);
+          let bone = 0;
+          for (let i = 0; i <= 20; i++) {
+            const th = -FOV + 2 * FOV * i / 20, dir = sub(mul(D, Math.cos(th)), mul(Lr, Math.sin(th)));
+            const a = add(sub(e, mul(D, RC)), mul(dir, RC));
+            for (let r = 0; r < 45; r += 1.5) if (KIND[codeP(add(a, mul(dir, r)))] === 2) { bone++; break; }
+          }
+          const score = bone + (Math.abs(sh) / 24 + Math.abs(rot) / 20) * .6;
+          if (!best || score < best.score) best = { score, e, Lr };
+        }
+      }
+      E = best.e; L = best.Lr;
+    }
+  }
+  return { E, D, L };
+}
+function applyOffsets(p, tilt, rot, slide) {
+  let { E, D, L } = p;
+  D = rotAxis(D, L, tilt);
+  L = rotAxis(L, D, rot);
+  if (slide) { const n = nrm(cross(D, L)); E = snapAlong(add(E, mul(n, slide)), D); }
+  return { E, D, L };
+}
+
+/* ======================================================================
+   Ultrasound simulator (CPU, polar buffer -> scan conversion)
+   ====================================================================== */
+const US = { NL: 200, NS: 400, W: 520, depth: 150, gain: 1, labels: true, seg: false };
+const usCanvas = $('usCanvas'), usCtx = usCanvas.getContext('2d');
+const usImg = document.createElement('canvas'), usImgCtx = usImg.getContext('2d');
+let VAL, TMP, LAB, MAP0, MAPW, IMG, mmpp, yTop, H;
+function hash3(x, y, z) {
+  let h = Math.imul(x, 0x27d4eb2d) ^ Math.imul(y, 0x165667b1) ^ Math.imul(z, 0x9e3779b1);
+  h = Math.imul(h ^ (h >>> 15), 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+function setupScan() {
+  const { NL, NS, W, depth } = US;
+  VAL = new Float32Array(NL * NS); TMP = new Float32Array(NL * NS); LAB = new Uint8Array(NL * NS);
+  mmpp = (RC + depth) * 2 * Math.sin(FOV) / W;
+  yTop = RC * Math.cos(FOV);
+  H = Math.ceil((RC + depth - yTop) / mmpp) + 2;
+  usCanvas.width = W; usCanvas.height = H; usImg.width = W; usImg.height = H;
+  IMG = usImgCtx.createImageData(W, H);
+  if (fanTex) fanTex.dispose();          // canvas size changed: force three.js to reallocate the texture
+  MAP0 = new Int32Array(W * H).fill(-1); MAPW = new Float32Array(W * H);
+  const ds = depth / NS;
+  for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+    const X = (px + .5 - W / 2) * mmpp, Y = yTop + (py + .5) * mmpp;
+    const R = Math.hypot(X, Y), th = Math.atan2(X, Y);
+    if (R < RC || R > RC + depth || Math.abs(th) > FOV) continue;
+    const fl = (th + FOV) / (2 * FOV) * (NL - 1);
+    let l0 = Math.floor(fl); if (l0 >= NL - 1) l0 = NL - 2;
+    const k = Math.min(NS - 1, Math.round((R - RC) / ds));
+    MAP0[py * W + px] = l0 * NS + k; MAPW[py * W + px] = fl - l0;
+  }
+  if (fan) buildFanGeometry();
+}
+const toScreen = (th, R) => [R * Math.sin(th) / mmpp + US.W / 2, (R * Math.cos(th) - yTop) / mmpp];
+
+function renderUS(pose) {
+  const { NL, NS, depth, W } = US, ds = depth / NS;
+  const { E, D, L } = pose;
+  const contact = codeP(add(E, mul(D, 2))) !== 0 && codeP(add(E, mul(D, 6))) !== 0;
+  const ax = E[0] - D[0] * RC, ay = E[1] - D[1] * RC, az = E[2] - D[2] * RC;
+  const kAtt = 0.03;
+  for (let l = 0; l < NL; l++) {
+    const th = -FOV + 2 * FOV * l / (NL - 1), c = Math.cos(th), s = Math.sin(th);
+    const dx = c * D[0] - s * L[0], dy = c * D[1] - s * L[1], dz = c * D[2] - s * L[2];
+    const sx = ax + dx * RC, sy = ay + dy * RC, sz = az + dz * RC;
+    let T = 1, prev = -1, ifcLeft = 0, ifcVal = 0, mirror = -1, inBone = false, inGas = false, outside = false, entered = false;
+    const base = l * NS;
+    for (let k = 0; k < NS; k++) {
+      const r = k * ds, x = sx + dx * r, y = sy + dy * r, z = sz + dz * r;
+      const code = contact ? codeAt(x, y, z) : 0;
+      LAB[base + k] = code;
+      if (!contact) { VAL[base + k] = 0; continue; }
+      if (!entered) {                     // gel/compressed skin under the convex face: no echo, no loss
+        if (code === 0) { VAL[base + k] = r < 4 ? .25 * (1 - r / 4) : 0; continue; }
+        entered = true;
+      }
+      const kind = KIND[code];
+      // interfaces
+      if (prev >= 0 && code !== prev) {
+        let w = 0;
+        if (GRP[code] !== GRP[prev]) w = Math.max(WALL[code], WALL[prev]);
+        else if (GRP[code] === LIVERG && (code === S1 || prev === S1)) w = .55;           // ligamentum venosum fissure
+        else if (GRP[code] === LIVERG && z < 1124 && ((code === S3 && (prev === S4 || prev === S4B)) || (prev === S3 && (code === S4 || code === S4B)))) w = .6; // ligamentum teres
+        if (w > 0) { ifcVal = w; ifcLeft = 3; }
+      }
+      let v = 0;
+      if (outside) { v = 0; }
+      else if (mirror >= 0) {             // beyond the diaphragm/lung: mirror image of the liver
+        const m = 2 * mirror - k;
+        v = m >= 0 ? VAL[base + m] * .5 : 0;
+      } else if (inBone || inGas) {
+        v = inGas ? T * (.25 + .5 * hash3(l >> 1, k >> 1, 7)) : 0;
+      } else {
+        const u = hash3(Math.floor(x * 3.2), Math.floor(y * 3.2), Math.floor(z * 3.2));
+        const sp = -Math.log(1 - .985 * u);
+        v = T * ECHO[code] * (.3 + .7 * sp);
+      }
+      if (ifcLeft > 0) { v += Math.min(T, 1.4) * ifcVal * (ifcLeft === 3 ? 1 : .55); ifcLeft--; }
+      // propagation
+      if (kind === 2 && !inBone) { inBone = true; T *= .06; }
+      else if (kind === 4 && !inGas) { inGas = true; T *= .55; }
+      else if (kind === 3 && mirror < 0 && !outside) { if (code === 0) outside = true; else mirror = k; }
+      if (inBone) T *= .9; else if (inGas) { if (kind !== 4) inGas = false; else T *= .992; }
+      else if (!outside && mirror < 0) T *= Math.exp(-(ATT[code] - .5) * kAtt * ds);
+      if (T > 2.3) T = 2.3;
+      VAL[base + k] = v * (1 - .18 * r / depth) + (r < 4 ? .25 * (1 - r / 4) : 0);
+      prev = code;
+    }
+  }
+  // lateral blur x2, axial blur x1
+  for (let pass = 0; pass < 2; pass++) {
+    for (let l = 0; l < NL; l++) for (let k = 0; k < NS; k++) {
+      const i = l * NS + k, a = l > 0 ? VAL[i - NS] : VAL[i], b = l < NL - 1 ? VAL[i + NS] : VAL[i];
+      TMP[i] = .25 * a + .5 * VAL[i] + .25 * b;
+    }
+    VAL.set(TMP);
+  }
+  for (let l = 0; l < NL; l++) { const b = l * NS; for (let k = 1; k < NS - 1; k++) TMP[b + k] = .25 * VAL[b + k - 1] + .5 * VAL[b + k] + .25 * VAL[b + k + 1]; }
+  VAL.set(TMP);
+
+  // stats per code: count and centroid in screen space (for labels / 3D highlight)
+  const cnt = new Float32Array(256), sx_ = new Float32Array(256), sy_ = new Float32Array(256);
+  for (let l = 0; l < NL; l += 2) {
+    const th = -FOV + 2 * FOV * l / (NL - 1), st = Math.sin(th), ct = Math.cos(th);
+    for (let k = 0; k < NS; k += 3) {
+      const c = LAB[l * NS + k]; if (!c) continue;
+      const R = RC + k * ds; cnt[c]++; sx_[c] += R * st; sy_[c] += R * ct;
+    }
+  }
+  // scan conversion
+  const data = IMG.data, g = US.gain, segOn = US.seg;
+  const segRGB = []; for (let s = 1; s <= 8; s++) segRGB[s] = hexRGB(SEGCOL[s]);
+  for (let p = 0, n = W * H; p < n; p++) {
+    const i0 = MAP0[p], o = p * 4;
+    if (i0 < 0) { data[o] = data[o + 1] = data[o + 2] = 0; data[o + 3] = 255; continue; }
+    const w = MAPW[p], v = VAL[i0] * (1 - w) + VAL[i0 + NS] * w;
+    let gr = Math.pow(Math.max(0, v * g * .92), .78) * 255; if (gr > 255) gr = 255;
+    let r = gr, gg = gr, b = gr;
+    if (segOn) {
+      const code = LAB[w < .5 ? i0 : i0 + NS], sg = INFO[code].seg;
+      if (sg) {
+        const sc = segRGB[sg], c2 = LAB[(w < .5 ? i0 : i0 + NS) + NS] ?? code, c3 = LAB[(w < .5 ? i0 : i0 + NS) + 1] ?? code;
+        const edge = (INFO[c2].seg && INFO[c2].seg !== sg) || (INFO[c3].seg && INFO[c3].seg !== sg);
+        const a = edge ? .85 : .3;
+        r = r * (1 - a) + sc[0] * a; gg = gg * (1 - a) + sc[1] * a; b = b * (1 - a) + sc[2] * a;
+      }
+    }
+    data[o] = r; data[o + 1] = gg; data[o + 2] = b; data[o + 3] = 255;
+  }
+  usImgCtx.putImageData(IMG, 0, 0);
+  usCtx.drawImage(usImg, 0, 0);
+  drawOverlay(contact, cnt, sx_, sy_);
+  if (fanTex) fanTex.needsUpdate = true;
+  return { contact, cnt };
+}
+function hexRGB(h) { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+
+const NOLABEL = new Set(['out', 'soft', 'fat', 'skin', 'muscle', 'sinus', 'cart', 'diaph']);
+function drawOverlay(contact, cnt, sx_, sy_) {
+  const ctx = usCtx, { W, depth, NL, NS } = US, ds = depth / NS;
+  ctx.save();
+  ctx.font = '500 12px "IBM Plex Sans KR", sans-serif';
+  // depth scale (cm) on the right edge of the fan
+  ctx.fillStyle = '#7d8a96'; ctx.textAlign = 'right';
+  for (let d = 0; d <= depth; d += 10) {
+    const [x, y] = toScreen(FOV, RC + d);
+    ctx.fillRect(x + 4, y, d % 50 === 0 ? 9 : 5, 1.2);
+    if (d % 50 === 0 && d > 0) ctx.fillText(d / 10 + '', W - 4, y + 4);
+  }
+  // orientation marker on the screen-left side
+  const [mx, my] = toScreen(-FOV, RC);
+  ctx.fillStyle = '#f2b54a'; ctx.beginPath(); ctx.arc(mx - 6, my - 8, 4.5, 0, Math.PI * 2); ctx.fill();
+  if (!contact) {
+    ctx.fillStyle = '#8d99a5'; ctx.textAlign = 'center';
+    ctx.fillText('프로브가 피부에 닿으면 영상이 나타납니다', W / 2, H * .45);
+    ctx.restore(); return;
+  }
+  if (!US.labels) { ctx.restore(); return; }
+  // label anchor: the sample of each structure nearest to its centroid
+  const best = new Float32Array(256).fill(1e9), bx = new Float32Array(256), by = new Float32Array(256);
+  const cx = new Float32Array(256), cy = new Float32Array(256);
+  for (let c = 1; c < 256; c++) if (cnt[c]) { cx[c] = sx_[c] / cnt[c]; cy[c] = sy_[c] / cnt[c]; }
+  for (let l = 0; l < NL; l += 2) {
+    const th = -FOV + 2 * FOV * l / (NL - 1), st = Math.sin(th), ct = Math.cos(th);
+    for (let k = 0; k < NS; k += 3) {
+      const c = LAB[l * NS + k]; if (!c) continue;
+      const R = RC + k * ds, X = R * st, Y = R * ct;
+      const m = INFO[c].kind === 1 ? 1 : 4, mk = m * 3;   // prefer samples well inside the structure
+      const inner = l >= m && l < NL - m && k >= mk && k < NS - mk &&
+        LAB[(l - m) * NS + k] === c && LAB[(l + m) * NS + k] === c && LAB[l * NS + k - mk] === c && LAB[l * NS + k + mk] === c;
+      const d = (X - cx[c]) ** 2 + (Y - cy[c]) ** 2 + (inner ? 0 : 1e6);
+      if (d < best[c]) { best[c] = d; bx[c] = X; by[c] = Y; }
+    }
+  }
+  const items = [];
+  for (let c = 1; c < 256; c++) {
+    const o = INFO[c]; if (!cnt[c] || NOLABEL.has(o.name)) continue;
+    const min = o.seg ? 260 : (o.kind === 1 ? 10 : 70);
+    if (cnt[c] < min) continue;
+    items.push({ c, n: cnt[c], x: bx[c] / mmpp + W / 2, y: (by[c] - yTop) / mmpp, t: o.ab || o.ko, seg: o.seg });
+  }
+  items.sort((a, b) => b.n - a.n);
+  const boxes = [];
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+  for (const it of items) {
+    const w = ctx.measureText(it.t).width + 4;
+    let x = it.x + 6, y = it.y;
+    if (x + w > W - 18) x = it.x - 6 - w;
+    const box = [x - 2, y - 8, x + w, y + 8];
+    if (boxes.some(b => !(box[2] < b[0] || box[0] > b[2] || box[3] < b[1] || box[1] > b[3]))) continue;
+    boxes.push(box);
+    ctx.fillStyle = it.seg ? SEGCOL[it.seg] : '#ffffff';
+    ctx.beginPath(); ctx.arc(it.x, it.y, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,.85)'; ctx.lineWidth = 3.2; ctx.strokeText(it.t, x, y);
+    ctx.fillText(it.t, x, y);
+  }
+  ctx.restore();
+}
+
+/* ======================================================================
+   3D scene
+   ====================================================================== */
+const glWrap = $('gl');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.localClippingEnabled = true;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+glWrap.appendChild(renderer.domElement);
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.domElement.style.cssText = 'position:absolute;inset:0;pointer-events:none';
+glWrap.appendChild(labelRenderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(32, 1, .5, 600);
+camera.position.set(-20, 18, 75);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = .08; controls.minDistance = 15; controls.maxDistance = 220;
+scene.add(new THREE.HemisphereLight(0xe8eef4, 0x3a302a, 1.15));
+const key = new THREE.DirectionalLight(0xffffff, 1.7); key.position.set(30, 60, 70); scene.add(key);
+const rim = new THREE.DirectionalLight(0xbfd4ff, .7); rim.position.set(-50, 20, -60); scene.add(rim);
+
+const clipPlane = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0);
+const CUT = [clipPlane];
+const MESH = {};
+async function buildMeshes() {
+  for (const m of A.meshes) {
+    const def = MESHDEF[m.key]; if (!def) continue;
+    const p16 = new Int16Array(await inflate(m.pos));
+    const pos = new Float32Array(m.nv * 3);
+    for (let i = 0; i < m.nv; i++) {
+      const x = p16[3 * i] / Q, y = p16[3 * i + 1] / Q, z = p16[3 * i + 2] / Q;
+      pos[3 * i] = x * S; pos[3 * i + 1] = z * S; pos[3 * i + 2] = -y * S;
+    }
+    const ib = await inflate(m.idx);
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setIndex(new THREE.BufferAttribute(m.i32 ? new Uint32Array(ib) : new Uint16Array(ib), 1));
+    geo.computeVertexNormals();
+    const [codes, group] = def;
+    const colHex = m.key === 'skin' ? '#e3c2a6' : INFO[codes[0]].col;
+    const mat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(colHex), roughness: group === 'bone' ? .7 : .48, metalness: 0,
+      transparent: true, opacity: BASE_OP[group], side: THREE.DoubleSide, emissive: new THREE.Color(colHex), emissiveIntensity: 0,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.renderOrder = { skin: 10, diaph: 6, gi: 5, liver: 4, organ: 3, vessel: 2, bone: 1 }[group];
+    scene.add(mesh);
+    geo.computeBoundingBox();
+    MESH[m.key] = { mesh, mat, codes, group, op: BASE_OP[group], target: BASE_OP[group], hit: false };
+    loadmsg.textContent = `3D 모델 구성 중… ${Object.keys(MESH).length}/${A.meshes.length}`;
+  }
+  // segment number tags at segment centroids
+  for (let s = 1; s <= 8; s++) {
+    const g = MESH['seg' + s].mesh.geometry, p = g.attributes.position.array, c = new THREE.Vector3();
+    for (let i = 0; i < p.length; i += 3) c.add(new THREE.Vector3(p[i], p[i + 1], p[i + 2]));
+    c.multiplyScalar(3 / p.length);
+    const el = document.createElement('div'); el.className = 'seglab'; el.textContent = 'S' + s; el.style.background = SEGCOL[s];
+    const o = new CSS2DObject(el); o.position.copy(c); scene.add(o);
+    MESH['seg' + s].tag = el; MESH['seg' + s].tagObj = o;
+  }
+  for (const [txt, p] of [['환자 우측', [-185, -120, 1060]], ['환자 좌측', [185, -120, 1060]], ['머리', [0, -120, 1270]]]) {
+    const el = document.createElement('div'); el.className = 'sidelab'; el.textContent = txt;
+    const o = new CSS2DObject(el); o.position.copy(bp2w(p)); scene.add(o);
+  }
+}
+
+/* ---------- volume texture + fan (scan plane) */
+let volTex, palTex, fan, fanTex, fanLine;
+function buildVolumeTexture() {
+  volTex = new THREE.Data3DTexture(VOLU8, NX, NY, NZ);
+  volTex.format = THREE.RedFormat; volTex.type = THREE.UnsignedByteType;
+  volTex.minFilter = volTex.magFilter = THREE.NearestFilter; volTex.unpackAlignment = 1; volTex.needsUpdate = true;
+  const pal = new Uint8Array(256 * 4);
+  for (let c = 0; c < 256; c++) { const [r, g, b] = hexRGB(INFO[c].col); pal.set([r, g, b, Math.round(INFO[c].a * 255)], c * 4); }
+  palTex = new THREE.DataTexture(pal, 256, 1, THREE.RGBAFormat); palTex.needsUpdate = true;
+  fanTex = new THREE.CanvasTexture(usImg); fanTex.minFilter = THREE.LinearFilter;
+}
+const probe = new THREE.Group(); scene.add(probe);
+function buildProbe() {
+  const white = new THREE.MeshStandardMaterial({ color: 0xe9ecef, roughness: .32 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x2b3138, roughness: .6 });
+  const R = RC * S, half = .8;
+  const shape = new THREE.Shape();
+  shape.moveTo(-R * Math.sin(half), R - R * Math.cos(half));
+  for (let a = -half; a <= half + 1e-6; a += half / 16) shape.lineTo(R * Math.sin(a), R - R * Math.cos(a));
+  shape.lineTo(R * Math.sin(half) + .05, 2.6); shape.lineTo(-R * Math.sin(half) - .05, 2.6); shape.closePath();
+  const head = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, { depth: 2.0, bevelEnabled: true, bevelSize: .12, bevelThickness: .12, bevelSegments: 2 }), white);
+  head.position.z = -1.0; probe.add(head);
+  const lensShape = new THREE.Shape();
+  for (let a = -half; a <= half + 1e-6; a += half / 16) lensShape.lineTo(R * Math.sin(a) * .98, R - R * Math.cos(a) - .02);
+  for (let a = half; a >= -half - 1e-6; a -= half / 16) lensShape.lineTo(R * Math.sin(a) * .98, R - R * Math.cos(a) + .35);
+  const lens = new THREE.Mesh(new THREE.ExtrudeGeometry(lensShape, { depth: 2.15, bevelEnabled: false }), dark);
+  lens.position.z = -1.075; probe.add(lens);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.6, 6, 24), white); neck.scale.z = .7; neck.position.y = 5.6; probe.add(neck);
+  const cap = new THREE.Mesh(new THREE.SphereGeometry(1.1, 20, 12), white); cap.scale.z = .7; cap.position.y = 8.6; probe.add(cap);
+  const cablePath = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 9.3, 0), new THREE.Vector3(0, 13, 0), new THREE.Vector3(0, 17, 3), new THREE.Vector3(0, 19, 9)]);
+  probe.add(new THREE.Mesh(new THREE.TubeGeometry(cablePath, 24, .32, 10), dark));
+  // orientation marker (screen-left side = local -X)
+  const mk = new THREE.Mesh(new THREE.BoxGeometry(.25, 1.0, .6), new THREE.MeshStandardMaterial({ color: 0xf2b54a, emissive: 0xf2b54a, emissiveIntensity: .6 }));
+  mk.position.set(-R * Math.sin(half) - .2, 1.7, 0); probe.add(mk);
+  // scan-plane fan
+  fan = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.ShaderMaterial({
+    transparent: true, side: THREE.DoubleSide, depthWrite: false, toneMapped: false,
+    uniforms: {
+      vol: { value: volTex }, pal: { value: palTex }, usTex: { value: fanTex }, mode: { value: 0 }, alpha: { value: 1 },
+      C: { value: new THREE.Vector3(...C) }, LO: { value: new THREE.Vector3(LO0, LO1, LO2) }, dims: { value: new THREE.Vector3(NX, NY, NZ) },
+      P: { value: PITCH }, S: { value: S },
+    },
+    vertexShader: `varying vec3 vW; varying vec2 vUv;
+      void main(){ vec4 w = modelMatrix * vec4(position,1.0); vW = w.xyz; vUv = uv; gl_Position = projectionMatrix * viewMatrix * w; }`,
+    fragmentShader: `precision highp float; precision highp sampler3D;
+      uniform sampler3D vol; uniform sampler2D pal; uniform sampler2D usTex;
+      uniform vec3 C; uniform vec3 LO; uniform vec3 dims; uniform float P; uniform float S; uniform float mode; uniform float alpha;
+      varying vec3 vW; varying vec2 vUv;
+      void main(){
+        vec3 bp = vec3(vW.x / S + C.x, -vW.z / S + C.y, vW.y / S + C.z);
+        vec3 t = (bp - LO) / P / dims;
+        float code = floor(texture(vol, t).r * 255.0 + 0.5);
+        vec4 pc = texture(pal, vec2((code + 0.5) / 256.0, 0.5));
+        vec4 us = texture(usTex, vUv);
+        vec3 col = mix(pc.rgb, us.rgb, mode);
+        float a = mix(pc.a, 0.96, mode) * alpha;
+        if (a < 0.01) discard;
+        gl_FragColor = vec4(col, a);
+      }`,
+  }));
+  fan.renderOrder = 20; probe.add(fan);
+  fanLine = new THREE.LineLoop(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xf2b54a, transparent: true, opacity: .9 }));
+  fanLine.renderOrder = 21; probe.add(fanLine);
+  buildFanGeometry();
+}
+function buildFanGeometry() {
+  const segs = 72, depth = US.depth, pos = [], uv = [], idx = [], line = [];
+  for (let i = 0; i <= segs; i++) {
+    const th = -FOV + 2 * FOV * i / segs;
+    for (const R of [RC, RC + depth]) {
+      pos.push(R * Math.sin(th) * S, (RC - R * Math.cos(th)) * S, 0);
+      const [px, py] = toScreen(th, R); uv.push(px / US.W, 1 - py / H);
+    }
+    if (i < segs) { const a = 2 * i; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  fan.geometry.dispose(); fan.geometry = g;
+  for (let i = 0; i <= segs; i++) { const th = -FOV + 2 * FOV * i / segs; line.push(RC * Math.sin(th) * S, (RC - RC * Math.cos(th)) * S, 0); }
+  for (let i = segs; i >= 0; i--) { const th = -FOV + 2 * FOV * i / segs, R = RC + depth; line.push(R * Math.sin(th) * S, (RC - R * Math.cos(th)) * S, 0); }
+  fanLine.geometry.dispose(); fanLine.geometry = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(line, 3));
+}
+function poseToTransform(p) {
+  const X = d2w(mul(p.L, -1)).normalize(), Y = d2w(mul(p.D, -1)).normalize(), Z = new THREE.Vector3().crossVectors(X, Y).normalize();
+  const m = new THREE.Matrix4().makeBasis(X, Y, Z);
+  return { pos: bp2w(p.E), quat: new THREE.Quaternion().setFromRotationMatrix(m) };
+}
+function transformToPose() {
+  const m = new THREE.Matrix4().makeRotationFromQuaternion(probe.quaternion);
+  const X = new THREE.Vector3(), Y = new THREE.Vector3(), Z = new THREE.Vector3(); m.extractBasis(X, Y, Z);
+  return { E: w2bp(probe.position), D: w2d(Y.clone().negate()), L: w2d(X.clone().negate()) };
+}
+
+/* ---------- state & animation */
+const state = { view: null, base: null, tilt: 0, rot: 0, slide: 0, sweep: false, sweepT: 0, tour: false, tourT: 0, autoCam: true, dirty: true };
+const anim = { t: 1, dur: 1.6, from: null, to: null, lift: 0, liftDir: new THREE.Vector3() };
+const camAnim = { pos: new THREE.Vector3(), target: new THREE.Vector3() };
+function currentPose() {
+  let tilt = state.tilt; if (state.sweep) tilt += 14 * Math.sin(state.sweepT * Math.PI * 2 / 4);
+  return applyOffsets(state.base, tilt, state.rot, state.slide);
+}
+function moveProbeTo(pose, animate, liftCm) {
+  const to = poseToTransform(pose);
+  if (!animate) { probe.position.copy(to.pos); probe.quaternion.copy(to.quat); anim.t = 1; state.dirty = true; return; }
+  anim.from = { pos: probe.position.clone(), quat: probe.quaternion.clone() }; anim.to = to; anim.t = 0;
+  const dist = anim.from.pos.distanceTo(to.pos);
+  anim.lift = liftCm ?? Math.min(9, 2.5 + dist * .45);
+  anim.dur = 1.1 + Math.min(1.2, dist * .05) + (liftCm ? .4 : 0);
+  const up0 = new THREE.Vector3(0, 1, 0).applyQuaternion(anim.from.quat), up1 = new THREE.Vector3(0, 1, 0).applyQuaternion(to.quat);
+  anim.liftDir.copy(up0.add(up1).normalize());
+}
+function frameCamera(pose) {
+  const n = d2w(nrm(cross(pose.D, pose.L))), out = d2w(mul(pose.D, -1));
+  const center = bp2w(add(pose.E, mul(pose.D, US.depth * .42)));
+  let sgn = Math.abs(n.z) > .3 ? Math.sign(n.z) : Math.sign((pose.E[0] < 0 ? -1 : 1) * n.x) || 1;
+  // look at the scan plane mostly face-on, from slightly above and from the probe's side,
+  // so the probe sits at the edge of the frame instead of in front of the fan
+  const dir = n.multiplyScalar(sgn).add(out.multiplyScalar(.28)).add(new THREE.Vector3(0, .38, 0)).normalize();
+  camAnim.target.copy(center); camAnim.pos.copy(center).add(dir.multiplyScalar(82));
+  state.autoCam = true;
+}
+controls.addEventListener('start', () => { state.autoCam = false; });
+
+function selectView(id, opts = {}) {
+  const v = VIEWS.find(x => x.id === id); if (!v) return;
+  state.view = v; state.base = basePose(v); state.tilt = state.rot = state.slide = 0;
+  for (const [k, o] of [['tilt', '°'], ['rot', '°'], ['slide', ' mm']]) { $(k).value = 0; $(k + 'O').textContent = '0' + o; }
+  if (US.depth !== v.depth) { US.depth = v.depth; $('depth').value = v.depth; $('depthO').textContent = v.depth / 10 + ' cm'; setupScan(); }
+  const pose = currentPose();
+  moveProbeTo(pose, opts.animate !== false);
+  frameCamera(pose);
+  try { localStorage.setItem('lus-view', String(id)); } catch (e) {}
+  // header + list + info
+  $('vNo').textContent = v.id; $('vEn').textContent = v.en; $('vKo').textContent = v.ko;
+  document.querySelectorAll('#viewList button').forEach(b => b.setAttribute('aria-current', String(+b.dataset.id === id)));
+  document.querySelector(`#viewList button[data-id="${id}"]`)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  $('iProbe').textContent = v.probe; $('iBreath').textContent = v.breath;
+  $('iCheck').innerHTML = v.check.map(c => `<li>${c}</li>`).join('');
+  setOrientation(state.base);
+  loadRealImage(v.id);
+  state.dirty = true;
+}
+function setOrientation(p) {
+  const L = p.L, cand = [['환자 오른쪽', [-1, 0, 0]], ['환자 왼쪽', [1, 0, 0]], ['머리 쪽', [0, 0, 1]], ['발 쪽', [0, 0, -1]], ['앞쪽(배)', [0, -1, 0]], ['뒤쪽(등)', [0, 1, 0]]];
+  cand.sort((a, b) => dot(L, b[1]) - dot(L, a[1]));
+  $('orient').innerHTML = `화면 왼쪽(<b>●</b> 마커 쪽) = <b>${cand[0][0]}</b>` + (dot(L, cand[1][1]) > .35 ? `, 약간 ${cand[1][0]}` : '') + ` · 위쪽 = 프로브가 닿은 피부`;
+}
+
+/* ---------- highlight structures cut by the plane */
+let lastHits = new Set();
+function updateHits(res) {
+  const hit = new Set();
+  if (res.contact) for (let c = 1; c < 256; c++) {
+    const o = INFO[c]; if (!res.cnt[c]) continue;
+    const min = o.seg ? 120 : (o.kind === 1 ? 6 : 40);
+    if (res.cnt[c] >= min) hit.add(c);
+  }
+  lastHits = hit;
+  const focus = $('focusT').checked;
+  for (const [k, m] of Object.entries(MESH)) {
+    m.hit = m.codes.some(c => hit.has(c));
+    let t = (focus && !m.hit && res.contact) ? DIM_OP[m.group] : BASE_OP[m.group];
+    if (m.group === 'skin' && !$('skinT').checked) t = 0;
+    if ((k === 'ribs' || k === 'cart' || k === 'spine') && !$('boneT').checked) t = 0;
+    m.target = t;
+    m.mat.emissiveIntensity = (focus && m.hit && m.group !== 'skin' && m.group !== 'bone') ? .22 : 0;
+    if (m.tag) m.tag.classList.toggle('on', m.hit);
+  }
+  // chips
+  const list = [...hit].map(c => ({ c, o: INFO[c], n: res.cnt[c] })).filter(x => !NOLABEL.has(x.o.name) || x.o.name === 'diaph');
+  const segs = new Map();
+  for (const x of list) if (x.o.seg) segs.set(x.o.ab, x);
+  const segHtml = [...segs.values()].sort((a, b) => a.o.ab.localeCompare(b.o.ab)).map(x => `<span class="chip seg" style="background:${x.o.col}" title="${x.o.ko}">${x.o.ab}</span>`).join('');
+  const seen = new Set();
+  const other = list.filter(x => !x.o.seg).sort((a, b) => b.n - a.n).filter(x => { const k = x.o.ko; if (seen.has(k)) return false; seen.add(k); return true; })
+    .map(x => `<span class="chip"><i style="background:${x.o.col}"></i>${x.o.ko}${x.o.ab && x.o.ab !== x.o.ko ? ` <span style="color:var(--mute)">${x.o.ab}</span>` : ''}</span>`).join('');
+  $('chips').innerHTML = res.contact ? (segHtml + other || '<span class="note">걸린 구조가 없습니다.</span>') : '<span class="note">프로브가 아직 피부에 닿지 않았습니다.</span>';
+}
+
+/* ---------- real ultrasound image slot */
+function loadRealImage(id) {
+  const fig = $('real'), img = $('realImg'), empty = $('realEmpty'), nn = String(id).padStart(2, '0');
+  let stored = null; try { stored = localStorage.getItem('lus-img-' + id); } catch (e) {}
+  const showEmpty = () => { img.hidden = true; fig.classList.remove('has'); empty.hidden = false;
+    empty.innerHTML = `실제 영상을 <code>us_images/${nn}.jpg</code>로 저장하거나<br>이 칸에 이미지 파일을 끌어다 놓으세요.`; };
+  img.onload = () => { img.hidden = false; empty.hidden = true; fig.classList.add('has'); };
+  const fromFiles = () => { img.onerror = () => { img.onerror = showEmpty; img.src = `us_images/${nn}.png`; }; img.src = `us_images/${nn}.jpg`; };
+  if (stored) { img.onerror = () => { try { localStorage.removeItem('lus-img-' + id); } catch (e) {} fromFiles(); }; img.src = stored; return; }
+  fromFiles();
+}
+{
+  const fig = $('real');
+  fig.addEventListener('dragover', e => { e.preventDefault(); fig.classList.add('drag'); });
+  fig.addEventListener('dragleave', () => fig.classList.remove('drag'));
+  fig.addEventListener('drop', e => {
+    e.preventDefault(); fig.classList.remove('drag');
+    const f = e.dataTransfer.files[0]; if (!f || !f.type.startsWith('image/')) return;
+    const id = state.view.id, url = URL.createObjectURL(f), probeImg = new Image();
+    probeImg.onload = () => {
+      // downscale before storing so it fits in localStorage
+      const k = Math.min(1, 1100 / Math.max(probeImg.width, probeImg.height)), c = document.createElement('canvas');
+      c.width = Math.round(probeImg.width * k); c.height = Math.round(probeImg.height * k);
+      c.getContext('2d').drawImage(probeImg, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      const data = c.toDataURL('image/jpeg', .88);
+      let saved = true; try { localStorage.setItem('lus-img-' + id, data); } catch (err) { saved = false; }
+      if (state.view.id !== id) return;
+      const img = $('realImg'); img.onerror = null;
+      if (!saved) img.addEventListener('load', () => { const m = $('realEmpty'); m.hidden = false; m.textContent = '이미지를 이 브라우저에 저장하지 못했습니다. 페이지를 다시 열면 사라집니다.'; }, { once: true });
+      img.src = data;
+    };
+    probeImg.onerror = () => { URL.revokeObjectURL(url); $('realEmpty').textContent = '이 브라우저가 열 수 없는 이미지 형식입니다. JPG나 PNG로 바꿔 넣어 주세요.'; };
+    probeImg.src = url;
+  });
+  $('realClear').addEventListener('click', () => { try { localStorage.removeItem('lus-img-' + state.view.id); } catch (e) {} loadRealImage(state.view.id); });
+}
+
+/* ---------- UI wiring */
+function buildList() {
+  const groups = { 1: '검상돌기하', 3: '우늑골하', 8: '우늑간·옆구리', 11: '비장', 12: '췌장', 15: '담도·담낭' };
+  $('viewList').innerHTML = VIEWS.map(v => (groups[v.id] ? `<li class="grp" aria-hidden="true">${groups[v.id]}</li>` : '') +
+    `<li><button data-id="${v.id}"><span class="n">${v.id}</span><span class="a">${v.en}</span><span class="b">${v.ko}</span></button></li>`).join('');
+  $('viewList').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { stopTour(); selectView(+b.dataset.id); } });
+}
+function buildLegend() {
+  const segs = Object.entries(SEGCOL).map(([s, c]) => `<span class="seg" style="background:${c}" title="${SEGKO[s]}">S${s}</span>`).join('');
+  const keys = [['#6a3fc7', '문맥'], ['#1f8ce0', '간정맥·하대정맥'], ['#e04848', '동맥'], ['#3f9c47', '담낭·담관'], ['#efbf88', '췌장'], ['#93305a', '비장']]
+    .map(([c, t]) => `<span class="key"><span class="sw" style="background:${c}"></span>${t}</span>`).join('');
+  $('legend').innerHTML = `<div class="row">${segs}</div>${keys}`;
+}
+function stopTour() { state.tour = false; $('tourBtn').setAttribute('aria-pressed', 'false'); }
+function step(d) { const i = VIEWS.findIndex(v => v.id === state.view.id); selectView(VIEWS[(i + d + VIEWS.length) % VIEWS.length].id); }
+function wireUI() {
+  for (const [k, unit] of [['tilt', '°'], ['rot', '°'], ['slide', ' mm']]) {
+    $(k).addEventListener('input', e => { state[k] = +e.target.value; $(k + 'O').textContent = e.target.value + unit; const p = currentPose(); moveProbeTo(p, false); setOrientation(p); });
+  }
+  $('replayBtn').addEventListener('click', () => {
+    const p = currentPose(), t = poseToTransform(p);
+    probe.position.copy(t.pos).add(new THREE.Vector3(0, 1, 0).applyQuaternion(t.quat).multiplyScalar(14));
+    probe.quaternion.copy(t.quat); moveProbeTo(p, true, 0); anim.dur = 1.5; frameCamera(p);
+  });
+  $('sweepBtn').addEventListener('click', () => toggleSweep());
+  $('tourBtn').addEventListener('click', () => {
+    state.tour = !state.tour; state.tourT = 0; $('tourBtn').setAttribute('aria-pressed', String(state.tour));
+    if (state.tour) step(1);
+  });
+  for (const id of ['focusT', 'skinT', 'boneT']) $(id).addEventListener('change', () => { state.dirty = true; });
+  $('segLabT').addEventListener('change', e => { for (let s = 1; s <= 8; s++) MESH['seg' + s].tagObj.visible = e.target.checked; });
+  $('fanUsT').addEventListener('change', e => { fan.material.uniforms.mode.value = e.target.checked ? 1 : 0; });
+  $('usLabT').addEventListener('change', e => { US.labels = e.target.checked; state.dirty = true; });
+  $('usSegT').addEventListener('change', e => { US.seg = e.target.checked; state.dirty = true; });
+  $('gain').addEventListener('input', e => { US.gain = +e.target.value; state.dirty = true; });
+  $('depth').addEventListener('input', e => { US.depth = +e.target.value; $('depthO').textContent = US.depth / 10 + ' cm'; setupScan(); state.dirty = true; });
+  const about = $('about');
+  $('aboutBtn').addEventListener('click', () => about.showModal());
+  $('aboutLink').addEventListener('click', e => { e.preventDefault(); about.showModal(); });
+  addEventListener('keydown', e => {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.target.closest('input,select,textarea,dialog')) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); stopTour(); step(1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); stopTour(); step(-1); }
+    else if (e.key === ' ') { e.preventDefault(); toggleSweep(); }
+  });
+}
+function toggleSweep() { state.sweep = !state.sweep; state.sweepT = 0; $('sweepBtn').setAttribute('aria-pressed', String(state.sweep)); if (!state.sweep) moveProbeTo(currentPose(), true, 0); }
+
+function resize() {
+  const w = glWrap.clientWidth, h = glWrap.clientHeight;
+  renderer.setSize(w, h); labelRenderer.setSize(w, h);
+  camera.aspect = w / Math.max(1, h); camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(glWrap);
+
+/* ---------- main loop */
+const clock = new THREE.Clock();
+const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function frame(dt) {
+  if (anim.t < 1) {
+    anim.t = reduceMotion ? 1 : Math.min(1, anim.t + dt / anim.dur);
+    const e = ease(anim.t);
+    probe.position.lerpVectors(anim.from.pos, anim.to.pos, e).addScaledVector(anim.liftDir, anim.lift * Math.sin(Math.PI * e));
+    probe.quaternion.slerpQuaternions(anim.from.quat, anim.to.quat, e);
+    state.dirty = true;
+  }
+  if (state.sweep && anim.t >= 1) {
+    state.sweepT += dt; const t = poseToTransform(currentPose());
+    probe.position.copy(t.pos); probe.quaternion.copy(t.quat); state.dirty = true;
+  }
+  if (state.tour && anim.t >= 1) { state.tourT += dt; if (state.tourT > 6) { state.tourT = 0; step(1); } }
+  if (state.dirty) { state.dirty = false; const res = renderUS(transformToPose()); updateHits(res); }
+  // clip plane = scan plane, removing the half that faces the camera
+  probe.updateMatrixWorld();
+  const n = new THREE.Vector3(0, 0, 1).applyQuaternion(probe.quaternion);
+  if (n.dot(camera.position.clone().sub(probe.position)) > 0) n.negate();
+  clipPlane.setFromNormalAndCoplanarPoint(n, probe.position);
+  const cut = $('cutT').checked && anim.t >= 1 ? CUT : null;
+  for (const m of Object.values(MESH)) {
+    m.op += (m.target - m.op) * Math.min(1, dt * 6);
+    m.mat.opacity = m.op; m.mesh.visible = m.op > .01;
+    m.mat.depthWrite = m.op > .5;
+    const want = cut && (m.hit || m.group === 'skin' || m.group === 'bone' || m.group === 'diaph') ? cut : null;
+    if (m.mat.clippingPlanes !== want) { m.mat.clippingPlanes = want; m.mat.needsUpdate = true; }
+  }
+  if (state.autoCam) {
+    controls.target.lerp(camAnim.target, Math.min(1, dt * 2.2));
+    camera.position.lerp(camAnim.pos, Math.min(1, dt * 2.2));
+    if (camera.position.distanceTo(camAnim.pos) < .05) state.autoCam = false;
+  }
+  controls.update();
+  renderer.render(scene, camera); labelRenderer.render(scene, camera);
+}
+function loop() { frame(Math.min(.05, clock.getDelta())); requestAnimationFrame(loop); }
+
+/* ---------- boot */
+(async () => {
+  try {
+    if (typeof DecompressionStream === 'undefined') throw new Error('이 브라우저는 압축 해제(DecompressionStream)를 지원하지 않습니다. 최신 Chrome·Edge·Firefox·Safari를 사용해 주세요.');
+    const V = A.volume;
+    [NX, NY, NZ] = V.dims; [LO0, LO1, LO2] = V.lo; PITCH = V.pitch; IP = 1 / PITCH;
+    VOLU8 = new Uint8Array(await inflate(V.data));
+    buildVolumeTexture();
+    await buildMeshes();
+    buildProbe();
+    setupScan(); buildList(); buildLegend(); wireUI(); resize();
+    let start = 1; try { start = +localStorage.getItem('lus-view') || 1; } catch (e) {}
+    if (!VIEWS.some(v => v.id === start)) start = VIEWS[0].id;
+    // park the probe above the abdomen, then animate onto the first view
+    probe.position.copy(bp2w([-60, -320, 1120])); probe.quaternion.setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0));
+    selectView(start);
+    camera.position.copy(camAnim.pos).add(new THREE.Vector3(0, 20, 40)); controls.target.copy(camAnim.target);
+    $('loading').classList.add('done');
+    window.__atlas = { frame, selectView, state, probe, anim, transformToPose, basePose, currentPose, codeP, VIEWS };
+    loop();
+  } catch (err) { console.error(err); fail('불러오기 실패: ' + err.message); }
+})();
+</script>
+</body>
+</html>
