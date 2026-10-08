@@ -171,8 +171,8 @@ dialog p,dialog li{font-size:13px;color:#c9d0d6;line-height:1.65}
       <label class="sl">밀기<input type="range" id="slide" min="-30" max="30" step="1" value="0"><output id="slideO">0 mm</output></label>
     </div>
     <div class="grp">
-      <label class="tg"><input type="checkbox" id="cutT" checked>단면으로 자르기</label>
-      <label class="tg"><input type="checkbox" id="focusT" checked>걸린 구조만 강조</label>
+      <label class="tg"><input type="checkbox" id="cutT">단면으로 자르기</label>
+      <label class="tg"><input type="checkbox" id="focusT">걸린 구조만 강조</label>
       <label class="tg"><input type="checkbox" id="fanUsT">단면에 초음파 표시</label>
       <label class="tg"><input type="checkbox" id="skinT" checked>피부</label>
       <label class="tg"><input type="checkbox" id="boneT" checked>뼈</label>
@@ -220,7 +220,7 @@ dialog p,dialog li{font-size:13px;color:#c9d0d6;line-height:1.65}
 <dialog id="about">
   <h3>자료와 한계</h3>
   <p><b>3D 해부 자료</b>: BodyParts3D, © The Database Center for Life Science, CC BY-SA 2.1 JP. 장기·혈관 메시는 원본을 단순화했습니다. 이 페이지의 파생 데이터(<code>data/anatomy.js</code>)도 같은 라이선스를 따릅니다.</p>
-  <p><b>Couinaud 분절</b>: 원본의 분절 메시는 라벨이 실제 위치와 어긋나 있어 다시 계산했습니다. 하대정맥 축을 중심으로 우·중간정맥과 제대열의 각도로 구역을 나누고, 문맥면(우측)과 좌간정맥(좌외측)으로 상·하 분절을 나눴습니다. 미상엽(S1)은 원본 미상엽 메시를 사용했습니다.</p>
+  <p><b>Couinaud 분절</b>: 원본의 분절 메시는 라벨이 실제 위치와 어긋나 있어 다시 계산했습니다. 하대정맥 축을 중심으로 우·중간정맥과 제대열의 각도로 구역을 나누고, 문맥면(우측)과 좌간정맥(좌외측)으로 상·하 분절을 나눴습니다. S4와 S5·S8의 경계(Cantlie 선)는 담낭와에서 중간정맥 본간까지 잇는 면입니다. 미상엽(S1)은 원본 미상엽 메시를 사용했습니다.</p>
   <p><b>초음파 영상</b>: 조직별 에코 강도, 감쇠, 경계면 반사, 스펙클, 뼈·가스 음영, 액체 뒤 후방 증강, 횡격막 거울상을 단순한 규칙으로 흉내 낸 것입니다. 실제 영상의 질감과 인공물을 대신하지 않습니다.</p>
   <p><b>실제 영상 넣기</b>: <code>us_images/01.jpg</code> ~ <code>17.jpg</code>(또는 .png)를 두면 해당 영상 옆에 자동으로 나타납니다. 영상 칸에 파일을 끌어다 놓아도 이 브라우저에만 저장됩니다.</p>
   <p><b>표준영상 목록</b>: 사용자가 정한 17개 구성을 따랐습니다. 참고: 대한초음파의학회 상복부 초음파 표준영상(일반 12·정밀 15), 국립암센터 간암 검진 질지침.</p>

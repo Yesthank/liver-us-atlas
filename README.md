@@ -50,6 +50,7 @@ python tools/fetch_index.py      # BodyParts3D isa zip 목차만 HTTP Range로 �
 python tools/fetch_objs.py       # groups.json에 적힌 OBJ만 받아 obj/ 에 저장 (~15 MB)
 python tools/build_volume.py obj .
 python tools/build_assets.py . data/anatomy.js
+python tools/refine_segments.py data/anatomy.js   # S4와 S5·S8 경계를 담낭와–중간정맥 면으로 보정
 ```
 
 ## 출처와 한계
@@ -57,6 +58,8 @@ python tools/build_assets.py . data/anatomy.js
 - 3D 해부: BodyParts3D, © The Database Center for Life Science, CC BY-SA 2.1 JP. `data/anatomy.js`도 같은 라이선스를 따릅니다.
 - Couinaud 분절: 원본 분절 메시는 라벨이 실제 위치와 어긋나 있어 다시 계산했습니다.
   - 좌우 구역: 하대정맥 축을 중심으로 우간정맥·중간정맥·제대열이 이루는 각도로 나눴습니다.
+  - S4와 S5·S8 경계(Cantlie 선): 담낭와에서 합류부 직전의 중간정맥 본간까지 잇는 면입니다.
+  - 원본에서 좌문맥으로 묶인 분지 중 우측 간(S5·S8)에 있는 것은 우문맥으로 표시합니다.
   - 상하 분절: 우측은 문맥면, 좌외측은 좌간정맥으로 나눴습니다.
   - S1: 원본 미상엽 메시를 사용했습니다.
   - 근사이므로 실제 환자의 변이와 다를 수 있습니다.
