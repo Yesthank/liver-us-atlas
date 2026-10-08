@@ -8,7 +8,8 @@ territories of the segmental portal branches. Section names follow Brisbane 2000
 1. Sectors. Angles are taken about the IVC axis in each axial slice.
    - Midplane (right vs left hemiliver): from the gallbladder fossa at the GB top to the MHV trunk below
      the confluence (Cantlie line).
-   - Right portal scissura (S5/S8 vs S6/S7): the RHV, kept between the anterior and posterior pedicles.
+   - Right portal scissura (S5/S8 vs S6/S7): the RHV, leaving out tributaries within 10 mm of the S7/S8
+     pedicles, and kept between the anterior and posterior pedicles.
      Left portal scissura (S2 vs S3): the LHV. Each is the median angle of the vein in the slice,
      smoothed over z and held beyond the vein's ends.
    - Umbilical fissure (S4 vs S3): the umbilical portion of the LPV.
@@ -17,7 +18,7 @@ territories of the segmental portal branches. Section names follow Brisbane 2000
    its sector, a liver voxel takes the segment of the nearest segmental-branch lumen voxel (nearest-branch
    territories as in Soler et al. 2001 and Selle et al. 2002). This splits S5/S8, S6/S7 and S4a/S4b.
 3. Portal voxels are renamed by the hemiliver they supply: RPV for S5-S8, LPV for S2-S4, MPV for the shared trunk.
-S1 keeps the BodyParts3D caudate lobe. Segment meshes are rebuilt with the same settings as build_assets.py,
+S1 keeps the BodyParts3D caudate lobe (plus stray boundary voxels that touch only S1). Segment meshes are rebuilt with the same settings as build_assets.py,
 and the existing portal meshes are re-split by the new portal names.
 """
 import sys, json, zlib, base64, numpy as np, trimesh, fast_simplification
@@ -149,12 +150,12 @@ def trunk_angle(code, k, rmin=20.0):
     return float(angle(X[sel], Y[sel], k)[r >= np.median(r)].mean())
 
 
-def vein_plane(code, rmin=20.0):
-    """Scissura angle per slice: median angle of the vein beyond rmin of the IVC centre, smoothed over z
-    and held constant beyond the vein's ends."""
+def vein_plane(code, keep=None, rmin=20.0):
+    """Scissura angle per slice: median angle of the vein beyond rmin of the IVC centre (and inside keep),
+    smoothed over z and held constant beyond the vein's ends."""
     t = np.full(NZ, np.nan)
     for k in range(NZ):
-        m = lab[:, :, k] == code
+        m = (lab[:, :, k] == code) & (True if keep is None else keep[:, :, k])
         a = angle(X[m], Y[m], k)[np.hypot(X[m] - cx[k], Y[m] - cy[k]) >= rmin]
         if len(a) >= 5:
             t[k] = np.median(a)
@@ -168,7 +169,11 @@ gk = np.nonzero(gb.any((0, 1)))[0]
 th_gb = float(np.mean(np.concatenate([angle(X[gb[:, :, k]], Y[gb[:, :, k]], k) for k in gk])))
 th_top = float(np.median([a for k in np.nonzero(zs >= Z_TRUNK)[0] if (a := trunk_angle(L['mhv'], k)) is not None]))
 tM = np.interp(zs, [zs[gk[-1]], Z_TRUNK], [th_gb, th_top])
-tR, okR = vein_plane(L['rhv'])
+# RHV tributaries running alongside the S7 or S8 pedicle drain that segment; leave them out so the plane
+# follows the scissural course between the sectors
+upper_ped = np.zeros(lab.shape, bool)
+upper_ped[tuple(pv[np.isin(pseg, ('s7', 's8'))].T)] = True
+tR, okR = vein_plane(L['rhv'], keep=ndi.distance_transform_edt(~upper_ped) * P >= 10)
 tL, okL = vein_plane(L['lhv'])
 # the right portal scissura runs between the posterior (S6/S7) and anterior (S5/S8) pedicles
 pk = pv[:, 2]
@@ -183,6 +188,7 @@ for k in np.unique(pk):
     if len(a_ant):
         hi[k] = a_ant.min() - 3
 tR = ndi.gaussian_filter1d(np.where(lo < hi, np.clip(tR, lo, hi), tR), 1.5, mode='nearest')
+tR = np.where(lo < hi, np.clip(tR, lo, hi), tR)
 
 # ---- portal names: segmental branches by hemiliver; trunk by the side it mostly supplies
 r_sum = np.isin(seg_of, RIGHT).astype(float)
@@ -241,7 +247,8 @@ fb = free[box]
 votes = np.stack([ndi.gaussian_filter((assigned == L[s]).astype(np.float32), SMOOTH) for s in SEEDS])
 best = np.array([L[s] for s in SEEDS], np.uint8)[np.argmax(votes, 0)]
 lab[box][fb] = best[fb]
-# drop specks: a segment piece under 20 voxels takes the most common neighbouring segment
+# drop specks: segment pieces under 20 voxels join the most common adjacent segment; stray voxels on the
+# caudate surface whose only liver neighbour is S1 join S1
 for s in SEG[1:]:
     pieces, n = ndi.label(lab == L[s])
     if n < 2:
