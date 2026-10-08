@@ -5,18 +5,20 @@ Run after build_assets.py. It replaces the angle-based split from build_volume.p
 
 Couinaud (1957) separates sectors by the scissurae that carry the hepatic veins and defines segments as the
 territories of the segmental portal branches. Section names follow Brisbane 2000 (Strasberg et al.).
-1. Sections. Angles are taken about the IVC axis in each axial slice.
+1. Sectors. Angles are taken about the IVC axis in each axial slice.
    - Midplane (right vs left hemiliver): from the gallbladder fossa at the GB top to the MHV trunk below
      the confluence (Cantlie line).
-   - Right intersectional plane (anterior vs posterior right section): the RHV trunk in each slice.
-     Where the slice has no RHV, the nearest portal branch decides.
-   - Umbilical fissure (S4 vs left lateral section): the umbilical portion of the LPV.
+   - Right portal scissura (S5/S8 vs S6/S7): the RHV, kept between the anterior and posterior pedicles.
+     Left portal scissura (S2 vs S3): the LHV. Each is the median angle of the vein in the slice,
+     smoothed over z and held beyond the vein's ends.
+   - Umbilical fissure (S4 vs S3): the umbilical portion of the LPV.
 2. Segments. The portal labels are skeletonized into one tree rooted at the lower end of the MPV. Each
    SEEDS point sits on a segmental branch, and it and everything downstream belong to that segment. Inside
-   its section, a liver voxel takes the segment of the nearest segmental-branch lumen voxel (nearest-branch
-   territories as in Soler et al. 2001 and Selle et al. 2002). This splits S5/S8, S6/S7, S2/S3 and S4a/S4b.
+   its sector, a liver voxel takes the segment of the nearest segmental-branch lumen voxel (nearest-branch
+   territories as in Soler et al. 2001 and Selle et al. 2002). This splits S5/S8, S6/S7 and S4a/S4b.
 3. Portal voxels are renamed by the hemiliver they supply: RPV for S5-S8, LPV for S2-S4, MPV for the shared trunk.
-S1 keeps the BodyParts3D caudate lobe. Segment and portal meshes are rebuilt with the same settings as build_assets.py.
+S1 keeps the BodyParts3D caudate lobe. Segment meshes are rebuilt with the same settings as build_assets.py,
+and the existing portal meshes are re-split by the new portal names.
 """
 import sys, json, zlib, base64, numpy as np, trimesh, fast_simplification
 from scipy import ndimage as ndi
@@ -26,25 +28,26 @@ from skimage import measure
 from skimage.morphology import skeletonize
 
 PATH = sys.argv[1] if len(sys.argv) > 1 else 'data/anatomy.js'
-# Points on the segmental branches of this BodyParts3D portal tree (mm), each about 4 mm past its
-# branching point. Right portal vein: anterior branch -> S5 (inferior), S8 (superior); posterior
-# branch -> S6 (inferior), S7 (superior). Umbilical portion of the LPV -> S2 (posterior-superior),
-# S3 (anterior-inferior), S4a/S4b (rightward, above/below). The second S8 point is a branch that
-# leaves the LPV and runs right into the anterior-superior right liver (variant origin, S8 territory).
+# Points on the segmental branches of this BodyParts3D portal tree (mm), each on an unbranched run a few
+# mm past its branching point. Right portal vein: anterior branch -> S8 (ascending) and S5 (the inferior
+# branch plus a short branch that leaves the S8 stem and descends to fuse with it); posterior branch ->
+# S6 (inferior), S7 (superior). Umbilical portion of the LPV -> S2 (posterior-superior), S3 (anterior-
+# inferior), S4a/S4b (rightward, above/below). The second S8 point is an anterior-superior branch that
+# BodyParts3D labels RPV; it touches the LPV in the voxel model, so the skeleton tree hangs it there.
 SEEDS = {
     's2': [(-3.25, -153.75, 1126.75), (-6.25, -155.25, 1134.25)],
     's3': [(-3.25, -165.75, 1131.25), (-4.75, -170.25, 1119.25)],
     's4': [(-15.25, -171.75, 1129.75)],
-    's4b': [(-15.25, -176.25, 1122.25)],
-    's5': [(-49.75, -146.25, 1113.25)],
+    's4b': [(-15.25, -174.75, 1123.75)],
+    's5': [(-49.75, -146.25, 1113.25), (-51.25, -152.25, 1120.75)],
     's6': [(-64.75, -114.75, 1105.75)],
     's7': [(-61.75, -111.75, 1111.75)],
-    's8': [(-48.25, -146.25, 1120.75), (-25.75, -152.25, 1125.25)],
+    's8': [(-52.75, -146.25, 1125.25), (-25.75, -152.25, 1125.25)],
 }
 RIGHT = ('s5', 's6', 's7', 's8')
-SECTIONS = {'ant': ('s5', 's8'), 'post': ('s6', 's7'), 'med': ('s4', 's4b'), 'lat': ('s2', 's3')}
+SECTORS = {'ant': ('s5', 's8'), 'post': ('s6', 's7'), 'med': ('s4', 's4b'), 's3': ('s3',), 's2': ('s2',)}
 Z_TRUNK = 1150.0     # MHV is a single trunk above this level
-TRUNK_SHARE = 0.75   # a trunk voxel is RPV/LPV when this share of its downstream territory is on one side
+TRUNK_SHARE = 0.75   # a trunk voxel is RPV/LPV when this share of its downstream segmental-branch nodes is on one side
 SMOOTH = 1.5         # voxels, Gaussian vote that removes single-voxel jaggies at segment borders
 
 src = open(PATH).read()
@@ -102,6 +105,7 @@ for s, pts in SEEDS.items():
         d = np.linalg.norm(xyz - p, axis=1)
         n = int(np.argmin(d))
         assert d[n] < 2.5, f'seed {s} {p} is {d[n]:.1f} mm from the portal skeleton; update SEEDS'
+        assert len(children[n]) == 1 and len(children[parent[n]]) == 1, f'seed {s} {p} is at a branching point'
         sub = downstream(n)
         assert not seg_of[sub].any(), f'seed {s} {p} overlaps another segment'
         seg_of[sub] = s
@@ -145,18 +149,40 @@ def trunk_angle(code, k, rmin=20.0):
     return float(angle(X[sel], Y[sel], k)[r >= np.median(r)].mean())
 
 
+def vein_plane(code, rmin=20.0):
+    """Scissura angle per slice: median angle of the vein beyond rmin of the IVC centre, smoothed over z
+    and held constant beyond the vein's ends."""
+    t = np.full(NZ, np.nan)
+    for k in range(NZ):
+        m = lab[:, :, k] == code
+        a = angle(X[m], Y[m], k)[np.hypot(X[m] - cx[k], Y[m] - cy[k]) >= rmin]
+        if len(a) >= 5:
+            t[k] = np.median(a)
+    ok = np.isfinite(t)
+    t[ok] = ndi.median_filter(t[ok], 5, mode='nearest')
+    return ndi.gaussian_filter1d(np.interp(np.arange(NZ), np.nonzero(ok)[0], t[ok]), 3, mode='nearest'), ok
+
+
 gb = lab == L['gb']
 gk = np.nonzero(gb.any((0, 1)))[0]
 th_gb = float(np.mean(np.concatenate([angle(X[gb[:, :, k]], Y[gb[:, :, k]], k) for k in gk])))
 th_top = float(np.median([a for k in np.nonzero(zs >= Z_TRUNK)[0] if (a := trunk_angle(L['mhv'], k)) is not None]))
 tM = np.interp(zs, [zs[gk[-1]], Z_TRUNK], [th_gb, th_top])
-tR = np.full(NZ, np.nan)
-for k in range(NZ):
-    a = trunk_angle(L['rhv'], k)
-    if a is not None:
-        tR[k] = a
-ok = np.isfinite(tR)
-tR[ok] = ndi.median_filter(tR[ok], 5, mode='nearest')
+tR, okR = vein_plane(L['rhv'])
+tL, okL = vein_plane(L['lhv'])
+# the right portal scissura runs between the posterior (S6/S7) and anterior (S5/S8) pedicles
+pk = pv[:, 2]
+pa = angle(xs[pv[:, 0]], ys[pv[:, 1]], pk)
+beyond = np.hypot(xs[pv[:, 0]] - cx[pk], ys[pv[:, 1]] - cy[pk]) >= 30
+lo, hi = np.full(NZ, -np.inf), np.full(NZ, np.inf)
+for k in np.unique(pk):
+    a_post = pa[(pk == k) & beyond & np.isin(pseg, ['s6', 's7'])]
+    a_ant = pa[(pk == k) & beyond & np.isin(pseg, ['s5', 's8'])]
+    if len(a_post):
+        lo[k] = a_post.max() + 3
+    if len(a_ant):
+        hi[k] = a_ant.min() - 3
+tR = ndi.gaussian_filter1d(np.where(lo < hi, np.clip(tR, lo, hi), tR), 1.5, mode='nearest')
 
 # ---- portal names: segmental branches by hemiliver; trunk by the side it mostly supplies
 r_sum = np.isin(seg_of, RIGHT).astype(float)
@@ -182,9 +208,10 @@ ck = core[:, 2]
 ux, uy = xs[core[:, 0]], ys[core[:, 1]]
 far = np.hypot(ux - cx[ck], uy - cy[ck]) >= 25
 tU = float(np.median(angle(ux[far], uy[far], ck[far])))
-print(f'midplane {th_gb:.1f} -> {th_top:.1f} deg, umbilical fissure {tU:.1f} deg, RHV found in {int(ok.sum())} slices')
+print(f'midplane {th_gb:.1f} -> {th_top:.1f} deg, umbilical fissure {tU:.1f} deg, '
+      f'RHV {int(okR.sum())} slices, LHV {int(okL.sum())} slices')
 
-# ---- liver voxels outside S1: section from the planes, then segment from the nearest segmental branch
+# ---- liver voxels outside S1: sector from the planes, then segment from the nearest segmental branch
 liver = np.isin(lab, [L[s] for s in SEG])
 free = liver & (lab != L['s1'])
 box = ndi.find_objects(liver.astype(np.uint8))[0]
@@ -202,18 +229,30 @@ def nearest(segs):
 
 ks = np.arange(box[2].start, box[2].stop)
 th = np.stack([angle(X[box[:2]], Y[box[:2]], k) for k in ks], -1)
-tMb, tRb = tM[ks][None, None, :], tR[ks][None, None, :]
+tMb, tRb, tLb = (t[ks][None, None, :] for t in (tM, tR, tL))
 right = th < tMb
-near_right = nearest(RIGHT)
-ant = np.where(np.isfinite(tRb), th >= np.nan_to_num(tRb), np.isin(near_right, [L['s5'], L['s8']]))
-section = {'ant': right & ant, 'post': right & ~ant, 'med': ~right & (th < tU), 'lat': ~right & (th >= tU)}
+ant = th >= tRb
+lat = ~right & (th >= tU)
+sector = {'ant': right & ant, 'post': right & ~ant, 'med': ~right & ~lat, 's3': lat & (th < tLb), 's2': lat & (th >= tLb)}
 assigned = np.zeros(seed.shape, np.uint8)
-for sec, segs in SECTIONS.items():
-    assigned[section[sec]] = nearest(segs)[section[sec]]
+for sec, segs in SECTORS.items():
+    assigned[sector[sec]] = L[segs[0]] if len(segs) == 1 else nearest(segs)[sector[sec]]
 fb = free[box]
 votes = np.stack([ndi.gaussian_filter((assigned == L[s]).astype(np.float32), SMOOTH) for s in SEEDS])
 best = np.array([L[s] for s in SEEDS], np.uint8)[np.argmax(votes, 0)]
 lab[box][fb] = best[fb]
+# drop specks: a segment piece under 20 voxels takes the most common neighbouring segment
+for s in SEG[1:]:
+    pieces, n = ndi.label(lab == L[s])
+    if n < 2:
+        continue
+    size = ndi.sum(np.ones_like(pieces), pieces, range(1, n + 1))
+    for i in np.nonzero(size < 20)[0] + 1:
+        m = pieces == i
+        ring = lab[ndi.binary_dilation(m) & ~m]
+        ring = ring[np.isin(ring, [L[t] for t in SEG if t != s])]
+        if len(ring):
+            lab[m] = np.bincount(ring).argmax()
 
 changed = int((lab != before).sum())
 print('voxels changed', changed)

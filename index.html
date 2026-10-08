@@ -220,7 +220,7 @@ dialog p,dialog li{font-size:13px;color:#c9d0d6;line-height:1.65}
 <dialog id="about">
   <h3>자료와 한계</h3>
   <p><b>3D 해부 자료</b>: BodyParts3D, © The Database Center for Life Science, CC BY-SA 2.1 JP. 장기·혈관 메시는 원본을 단순화했습니다. 이 페이지의 파생 데이터(<code>data/anatomy.js</code>)도 같은 라이선스를 따릅니다.</p>
-  <p><b>Couinaud 분절</b>: 원본의 분절 메시는 라벨이 실제 위치와 어긋나 있어 다시 계산했습니다. Couinaud처럼 구역은 간정맥이 지나는 면으로, 분절은 문맥 분지가 맡는 영역으로 나눴습니다. 좌우 간은 담낭와와 중간정맥 본간을 잇는 면(Cantlie 선), 우전·우후 구역은 우간정맥, 좌내측(S4)·좌외측(S2·S3) 구역은 좌문맥 제대부를 지나는 제대열(겸상인대 선)로 나누고, 각 구역 안에서는 가장 가까운 분절 문맥 가지의 영역으로 S5/S8, S6/S7, S2/S3, S4a/S4b를 정했습니다. 미상엽(S1)은 원본 미상엽 메시를 사용했습니다. 이 모델의 문맥 가지는 몇 단계에서 끝나므로 경계는 근사입니다. 용어는 Brisbane 2000(Strasberg 외, HPB 2000)을 따릅니다.</p>
+  <p><b>Couinaud 분절</b>: 원본의 분절 메시는 라벨이 실제 위치와 어긋나 있어 다시 계산했습니다. Couinaud처럼 구역은 간정맥이 지나는 면으로, 분절은 문맥 분지가 맡는 영역으로 나눴습니다. 좌우 간은 담낭와와 중간정맥 본간을 잇는 면(Cantlie 선), 우전·우후 구역은 우간정맥, S2·S3는 좌간정맥, S3·S4는 좌문맥 제대부를 지나는 제대열(겸상인대 선)로 나누고, 각 구역 안에서는 가장 가까운 분절 문맥 가지의 영역으로 S5/S8, S6/S7, S4a/S4b를 정했습니다. 미상엽(S1)은 원본 미상엽 메시를 사용했습니다. 이 모델의 문맥 가지는 몇 단계에서 끝나므로 경계는 근사입니다. 용어는 Brisbane 2000(Strasberg 외, HPB 2000)을 따릅니다.</p>
   <p><b>초음파 영상</b>: 조직별 에코 강도, 감쇠, 경계면 반사, 스펙클, 뼈·가스 음영, 액체 뒤 후방 증강, 횡격막 거울상을 단순한 규칙으로 흉내 낸 것입니다. 실제 영상의 질감과 인공물을 대신하지 않습니다.</p>
   <p><b>실제 영상 넣기</b>: <code>us_images/01.jpg</code> ~ <code>17.jpg</code>(또는 .png)를 두면 해당 영상 옆에 자동으로 나타납니다. 영상 칸에 파일을 끌어다 놓아도 이 브라우저에만 저장됩니다.</p>
   <p><b>표준영상 목록</b>: 사용자가 정한 17개 구성을 따랐습니다. 참고: 대한초음파의학회 상복부 초음파 표준영상(일반 12·정밀 15), 국립암센터 간암 검진 질지침.</p>
@@ -313,7 +313,7 @@ for (let c = 0; c < 256; c++) if (!INFO[c]) INFO[c] = INFO[0];
 const ECHO = new Float32Array(256), ATT = new Float32Array(256), KIND = new Uint8Array(256), WALL = new Float32Array(256), GRP = new Int16Array(256);
 const grpIds = {};
 INFO.forEach((o, c) => { ECHO[c] = o.echo; ATT[c] = o.att; KIND[c] = o.kind; WALL[c] = o.wall; GRP[c] = grpIds[o.grp] ??= Object.keys(grpIds).length; });
-const S1 = LBL.s1, LIVERG = grpIds.liver, S3 = LBL.s3, S4 = LBL.s4, S4B = LBL.s4b;
+const S1 = LBL.s1, LIVERG = grpIds.liver, S2 = LBL.s2, S3 = LBL.s3, S4 = LBL.s4, S4B = LBL.s4b;
 
 /* ---------- 3D mesh registry: mesh key -> codes, group, colour */
 const MESHDEF = {
@@ -457,7 +457,7 @@ function renderUS(pose) {
         let w = 0;
         if (GRP[code] !== GRP[prev]) w = Math.max(WALL[code], WALL[prev]);
         else if (GRP[code] === LIVERG && (code === S1 || prev === S1)) w = .55;           // ligamentum venosum fissure
-        else if (GRP[code] === LIVERG && z < 1124 && ((code === S3 && (prev === S4 || prev === S4B)) || (prev === S3 && (code === S4 || code === S4B)))) w = .6; // ligamentum teres
+        else if (GRP[code] === LIVERG && z < 1124 && (((code === S3 || code === S2) && (prev === S4 || prev === S4B)) || ((prev === S3 || prev === S2) && (code === S4 || code === S4B)))) w = .6; // ligamentum teres
         if (w > 0) { ifcVal = w; ifcLeft = 3; }
       }
       let v = 0;
