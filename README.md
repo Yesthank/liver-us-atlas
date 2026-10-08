@@ -50,19 +50,20 @@ python tools/fetch_index.py      # BodyParts3D isa zip 목차만 HTTP Range로 �
 python tools/fetch_objs.py       # groups.json에 적힌 OBJ만 받아 obj/ 에 저장 (~15 MB)
 python tools/build_volume.py obj .
 python tools/build_assets.py . data/anatomy.js
-python tools/refine_segments.py data/anatomy.js   # S4 경계 보정: Cantlie 선(담낭와–중간정맥), 제대열(좌문맥 제대부)
+python tools/portal_segments.py data/anatomy.js   # 구역은 간정맥·열, 분절은 문맥 영역으로 다시 나눔
 ```
 
 ## 출처와 한계
 
 - 3D 해부: BodyParts3D, © The Database Center for Life Science, CC BY-SA 2.1 JP. `data/anatomy.js`도 같은 라이선스를 따릅니다.
-- Couinaud 분절: 원본 분절 메시는 라벨이 실제 위치와 어긋나 있어 다시 계산했습니다.
-  - 좌우 구역: 하대정맥 축을 중심으로 우간정맥·중간정맥·제대열이 이루는 각도로 나눴습니다.
-  - S4와 S5·S8 경계(Cantlie 선): 담낭와에서 합류부 직전의 중간정맥 본간까지 잇는 면입니다.
-  - S4와 S2·S3 경계(제대열, 겸상인대·원인대 선): 좌문맥 제대부를 지나는 면으로, 하대정맥 바로 앞에서 약간 왼쪽에 놓입니다.
-  - 원본에서 좌문맥으로 묶인 분지 중 우측 간(S5·S8)에 있는 것은 우문맥으로 표시합니다.
-  - 상하 분절: 우측은 문맥면, 좌외측은 좌간정맥으로 나눴습니다.
+- Couinaud 분절: 원본 분절 메시는 라벨이 실제 위치와 어긋나 있어 `tools/portal_segments.py`로 다시 계산했습니다. Couinaud처럼 구역(sector)은 간정맥이 지나는 면으로, 분절은 문맥 분지가 맡는 영역으로 나눴고, 이름은 Brisbane 2000 용어를 따릅니다.
+  - 좌우 간(Cantlie 선): 담낭와에서 합류부 직전의 중간정맥 본간까지 잇는 면입니다.
+  - 우전·우후 구역: 각 높이의 우간정맥 본간을 지나는 면입니다. 우간정맥이 없는 높이는 가까운 문맥 분지로 정합니다.
+  - 좌내측(S4)·좌외측(S2·S3) 구역: 좌문맥 제대부를 지나는 제대열(겸상인대·원인대 선)로, 하대정맥 바로 앞에서 약간 왼쪽에 놓입니다.
+  - 분절(S5/S8, S6/S7, S2/S3, S4a/S4b): 구역 안에서 가장 가까운 분절 문맥 가지의 영역입니다. 분지 시작점은 스크립트의 `SEEDS`에 있습니다.
+  - 문맥 이름은 공급하는 쪽으로 붙였습니다(S5–S8은 우문맥, S2–S4는 좌문맥). 이 모델에는 좌문맥에서 나와 S8로 가는 가지(변이)가 있어 우문맥으로 표시합니다.
   - S1: 원본 미상엽 메시를 사용했습니다.
-  - 근사이므로 실제 환자의 변이와 다를 수 있습니다.
+  - 이 모델의 문맥 트리는 몇 단계에서 끝나므로, 분절 경계는 실제 문맥 영역의 근사입니다. 평면 기준 분절과 실제 문맥 영역이 넓게 어긋날 수 있다는 점도 알려져 있습니다(Fasel 외 1998). 실제 환자의 변이와 다를 수 있습니다.
+  - 참고: Couinaud C. *Le Foie: études anatomiques et chirurgicales*. Masson, 1957 · Bismuth H. World J Surg 1982;6:3–9 · Strasberg SM 외. The Brisbane 2000 Terminology of Liver Anatomy and Resections. HPB 2000;2:333–339 · Soler L 외. Comput Aided Surg 2001;6:131–142 · Selle D 외. IEEE Trans Med Imaging 2002;21:1344–1357 · Fasel JH 외. Radiology 1998;206:151–156.
 - 초음파 영상: 조직별 에코, 감쇠, 경계면 반사, 스펙클, 뼈·가스 음영, 후방 증강, 횡격막 거울상을 단순 규칙으로 흉내 낸 시뮬레이션입니다.
 - 표준영상 구성: 사용자가 정한 17개 목록을 따랐습니다. 참고 자료는 대한초음파의학회 상복부 초음파 표준영상(일반 12·정밀 15)과 국립암센터 간암 검진 질지침입니다.
