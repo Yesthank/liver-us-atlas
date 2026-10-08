@@ -150,6 +150,7 @@ def hv_profile(fid):
 zR, tR = hv_profile('FJ2416'); tR = np.clip(tR, -125, -95); zM, tM = hv_profile('FJ2414'); zLh, tLh = hv_profile('FJ2415')
 print('RHV', tR.round(0), 'MHV', tM.round(0), 'LHV', tLh.round(0))
 TH_UF = 30.0
+# S4 vs S5/S8 is refined afterwards by refine_segments.py (gallbladder fossa -> MHV trunk).
 Z_PORTAL_R, Z_PORTAL_IV, Z_II = 1110.0, 1124.0, 1118.0
 zs = LO[2] + (np.arange(SHAPE[2]) + .5) * P
 seg = np.zeros(SHAPE, np.uint8)
