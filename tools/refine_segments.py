@@ -1,4 +1,4 @@
-"""Refine the main portal scissura (S4 vs S5/S8) in an existing data/anatomy.js.
+"""Refine the S4 boundaries (Cantlie line and umbilical fissure) in an existing data/anatomy.js.
 
 Usage: python refine_segments.py data/anatomy.js
 Run after build_assets.py. Safe to run again (the result does not change).
@@ -8,14 +8,17 @@ mesh. That left the gallbladder fossa entirely in S5. Here the boundary angle (a
 axis) runs from the gallbladder fossa at the GB top to the MHV trunk just below the
 confluence (Cantlie line), and is linear in z between them.
 Portal branches labelled LPV that lie in the right liver are relabelled RPV.
-Seg4/5/8 meshes are rebuilt with the same marching-cubes settings as build_assets.py.
+build_volume.py also puts the umbilical fissure (falciform ligament line, S4 vs S2/S3) at a fixed
+30 deg, about 3 cm left of the LPV umbilical portion. Here it is the angle of that portion, which
+lies just in front of the IVC; S4 beyond it joins the left lateral section.
+Changed segment meshes are rebuilt with the same marching-cubes settings as build_assets.py.
 """
 import sys, json, zlib, base64, numpy as np, trimesh, fast_simplification
 from scipy import ndimage as ndi
 from skimage import measure
 
 PATH = sys.argv[1] if len(sys.argv) > 1 else 'data/anatomy.js'
-Z_PORTAL_R, Z_PORTAL_IV = 1110.0, 1124.0   # same planes as build_volume.py
+Z_PORTAL_R, Z_PORTAL_IV, Z_II = 1110.0, 1124.0, 1118.0   # same planes as build_volume.py
 Z_TRUNK = 1150.0                            # MHV is a single trunk above this level
 LPV_MARGIN = 5.0                            # degrees right of the boundary before an LPV branch counts as right liver
 
@@ -88,6 +91,25 @@ def right_liver(x, y, k):
 i, j, k = np.nonzero(lab == L['lpv'])
 mv = right_liver(xs[i], ys[j], k)
 lab[i[mv], j[mv], k[mv]] = L['rpv']
+
+# umbilical fissure: median angle of the thick LPV umbilical portion in front of the hilum
+i, j, k = np.nonzero(ndi.distance_transform_edt(lab == L['lpv']) * P >= 2.5)
+far = np.hypot(xs[i] - cx[k], ys[j] - cy[k]) >= 25
+th_uf = float(np.median(angle(xs[i], ys[j], k)[far]))
+print(f'umbilical fissure {th_uf:.1f} deg')
+# S4 left of it joins the left lateral section, taking S2 or S3 from the nearest lateral voxel in its slice
+for k in range(NZ):
+    sl = lab[:, :, k]
+    a = angle(X, Y, k)
+    m = np.isin(sl, [L['s4'], L['s4b']]) & (a >= th_uf) & (a <= 150)
+    if not m.any():
+        continue
+    lat = np.isin(sl, [L['s2'], L['s3']])
+    if lat.any():
+        _, (ii, jj) = ndi.distance_transform_edt(~lat, return_indices=True)
+        sl[m] = sl[ii[m], jj[m]]
+    else:
+        sl[m] = L['s2'] if zs[k] > Z_II else L['s3']
 print('voxels changed', int((lab != before).sum()), '- LPV to RPV', int(mv.sum()))
 
 
@@ -135,8 +157,8 @@ def segment_mesh(codes):  # as in build_assets.py
 
 
 idx = {m['key']: n for n, m in enumerate(A['meshes'])}
-changed = {s for s, c in ((4, ('s4', 's4b')), (5, ('s5',)), (8, ('s8',)))
-           if any(((lab == L[x]) != (before == L[x])).any() for x in c)}
+changed = {s for s in range(1, 9)
+           if any(((lab == L[x]) != (before == L[x])).any() for x in (['s4', 's4b'] if s == 4 else [f's{s}']))}
 for s in sorted(changed):
     codes = [L['s4'], L['s4b']] if s == 4 else [L[f's{s}']]
     A['meshes'][idx[f'seg{s}']] = pack(f'seg{s}', segment_mesh(codes))
