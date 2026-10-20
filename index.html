@@ -176,6 +176,7 @@ dialog p,dialog li{font-size:13px;color:#c9d0d6;line-height:1.65}
       <label class="tg"><input type="checkbox" id="fanUsT">단면에 초음파 표시</label>
       <label class="tg"><input type="checkbox" id="skinT" checked>피부</label>
       <label class="tg"><input type="checkbox" id="boneT" checked>뼈</label>
+      <label class="tg" title="끄면 간정맥·문맥·동맥·담관만 보입니다"><input type="checkbox" id="liverT" checked>간 실질</label>
       <label class="tg"><input type="checkbox" id="segLabT" checked>분절 번호</label>
     </div>
   </div>
@@ -948,6 +949,7 @@ function updateHits(res) {
     let t = (focus && !m.hit && res.contact) ? DIM_OP[m.group] : BASE_OP[m.group];
     if (m.group === 'skin' && !$('skinT').checked) t = 0;
     if ((k === 'ribs' || k === 'cart' || k === 'spine') && !$('boneT').checked) t = 0;
+    if (m.group === 'liver' && !$('liverT').checked) t = 0;
     m.target = t;
     m.mat.emissiveIntensity = (focus && m.hit && m.group !== 'skin' && m.group !== 'bone') ? .22 : 0;
     if (m.tag) m.tag.classList.toggle('on', m.hit);
@@ -1029,7 +1031,7 @@ function wireUI() {
     state.tour = !state.tour; state.tourT = 0; $('tourBtn').setAttribute('aria-pressed', String(state.tour));
     if (state.tour) step(1);
   });
-  for (const id of ['focusT', 'skinT', 'boneT']) $(id).addEventListener('change', () => { state.dirty = true; });
+  for (const id of ['focusT', 'skinT', 'boneT', 'liverT']) $(id).addEventListener('change', () => { state.dirty = true; });
   $('segLabT').addEventListener('change', e => { for (let s = 1; s <= 8; s++) MESH['seg' + s].tagObj.visible = e.target.checked; });
   $('fanUsT').addEventListener('change', e => { fan.material.uniforms.mode.value = e.target.checked ? 1 : 0; });
   $('usLabT').addEventListener('change', e => { US.labels = e.target.checked; state.dirty = true; });
