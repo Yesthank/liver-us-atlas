@@ -71,6 +71,8 @@ main{position:relative;min-height:0;overflow:hidden;background:radial-gradient(1
 .tg{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--mute);cursor:pointer;user-select:none;white-space:nowrap}
 .tg input{accent-color:var(--amber);margin:0}
 .hint{position:absolute;right:14px;top:12px;font-size:12px;color:var(--faint);text-align:right}
+.pstate{position:absolute;right:14px;top:56px;max-width:300px;font-size:12px;color:var(--mute);text-align:right;line-height:1.45;pointer-events:none}
+.pstate b{color:var(--amber);font-weight:500}
 
 /* scan panel */
 aside{border-left:1px solid var(--line);overflow:auto;padding:14px 16px 24px;display:flex;flex-direction:column;gap:16px}
@@ -128,6 +130,7 @@ dialog p,dialog li{font-size:13px;color:#c9d0d6;line-height:1.65}
 @media (max-width:560px){
   .legend{display:none}
   .hint{display:none}
+  .pstate{top:12px;left:16px;right:16px;max-width:none}
   .dock{padding:10px 16px}
   .sl input{width:84px}
   aside{padding:12px 16px 24px}
@@ -159,6 +162,7 @@ dialog p,dialog li{font-size:13px;color:#c9d0d6;line-height:1.65}
   <div id="gl"></div>
   <div class="legend" id="legend"></div>
   <div class="hint">드래그 회전 · 휠 확대 · 우클릭 이동<br>← → 영상 넘기기 · Space 스윕</div>
+  <div class="pstate" id="pstate" aria-live="polite"></div>
   <div class="dock">
     <div class="grp">
       <button class="btn primary" id="replayBtn" title="프로브를 들었다가 다시 대기">다시 대기</button>
@@ -169,6 +173,12 @@ dialog p,dialog li{font-size:13px;color:#c9d0d6;line-height:1.65}
       <label class="sl">기울기<input type="range" id="tilt" min="-25" max="25" step="1" value="0"><output id="tiltO">0°</output></label>
       <label class="sl">회전<input type="range" id="rot" min="-45" max="45" step="1" value="0"><output id="rotO">0°</output></label>
       <label class="sl">밀기<input type="range" id="slide" min="-30" max="30" step="1" value="0"><output id="slideO">0 mm</output></label>
+    </div>
+    <div class="grp" role="group" aria-label="호흡과 자세">
+      <label class="sl" title="평상 호흡이 모델 기준. 흡기: 횡격막·간이 내려가고 늑골 앞끝은 올라감. 호기: 반대.">호흡<input type="range" id="breath" min="-1" max="1" step="0.25" value="0"><output id="breathO" style="width:58px">평상 호흡</output></label>
+      <label class="sl">자세<select id="posS" style="background:#0d1115;border:1px solid #2a323b;border-radius:4px;padding:1px 2px"><option value="sup">앙와위</option><option value="lld">좌측와위(LLD)</option><option value="rld">우측와위(RLD)</option></select></label>
+      <button class="btn" id="recBtn">교재 권장</button>
+      <label class="tg" title="켜면 프로브를 그대로 두고 장기만 움직입니다. 끄면 프로브가 같은 구조를 다시 겨냥합니다."><input type="checkbox" id="holdT">프로브 고정</label>
     </div>
     <div class="grp">
       <label class="tg"><input type="checkbox" id="cutT">단면으로 자르기</label>
@@ -189,7 +199,7 @@ dialog p,dialog li{font-size:13px;color:#c9d0d6;line-height:1.65}
       <div class="usbar">
         <label class="tg"><input type="checkbox" id="usLabT" checked>구조 이름</label>
         <label class="tg"><input type="checkbox" id="usSegT">분절 색</label>
-        <label class="sl">위 내용<select id="stomachS" style="background:#0d1115;border:1px solid #2a323b;border-radius:4px;padding:1px 2px"><option value="gut">공복(혼합 에코)</option><option value="gas">가스(앙와위)</option><option value="water">물 마신 후</option></select></label>
+        <label class="sl">위 내용<select id="stomachS" style="background:#0d1115;border:1px solid #2a323b;border-radius:4px;padding:1px 2px"><option value="gut">공복(혼합 에코)</option><option value="gas">가스(위쪽에 모임)</option><option value="water">물 마신 후</option></select></label>
         <label class="sl">게인<input type="range" id="gain" min="0.5" max="1.8" step="0.05" value="1"></label>
         <label class="sl">깊이<input type="range" id="depth" min="100" max="200" step="10" value="150"><output id="depthO">15 cm</output></label>
       </div>
@@ -223,7 +233,8 @@ dialog p,dialog li{font-size:13px;color:#c9d0d6;line-height:1.65}
   <h3>자료와 한계</h3>
   <p><b>3D 해부 자료</b>: BodyParts3D, © The Database Center for Life Science, CC BY-SA 2.1 JP. 장기·혈관 메시는 원본을 단순화했습니다. 이 페이지의 파생 데이터(<code>data/anatomy.js</code>)도 같은 라이선스를 따릅니다.</p>
   <p><b>Couinaud 분절</b>: 원본의 분절 메시는 라벨이 실제 위치와 어긋나 있어 다시 계산했습니다. Couinaud처럼 구역은 간정맥이 지나는 면으로, 분절은 문맥 분지가 맡는 영역으로 나눴습니다. 좌우 간은 담낭와와 중간간정맥 본간을 잇는 면(Cantlie 선), 우전·우후 구역은 우간정맥 본간, 좌내측·좌외측 구역은 좌문맥 제대부를 지나는 제대열(겸상인대 선)로 나누고, 각 구역 안에서는 가장 가까운 분절 문맥 가지의 영역으로 S5/S8, S6/S7(머리–꼬리 거리에 2배 가중), S4a/S4b, S2/S3를 정했습니다. S2·S3는 P2·P3 문맥 영역이며 좌간정맥은 대략적인 경계입니다. 미상엽(S1)은 원본 미상엽 메시를 사용했습니다. 이 모델의 문맥 가지는 몇 단계에서 끝나므로 경계는 근사입니다. 용어는 Brisbane 2000(Strasberg 외, HPB 2000)을 따릅니다.</p>
-  <p><b>초음파 영상</b>: 조직별 에코 강도, 감쇠, 경계면 반사(간정맥 벽은 빔이 수직일 때만 밝음), 스펙클, 뼈 음영, 장 가스의 밝은 경계와 지저분한 음영·잔향, 액체 뒤 후방 증강, 횡격막 거울상, 폐의 링다운(탐촉자를 머리 쪽으로 많이 눕힐 때)과 A선을 단순한 규칙으로 흉내 낸 것입니다. 위는 공복 상태의 혼합 에코를 기본으로 하고, 영상 아래 '위 내용'에서 앙와위 가스와 물 마신 뒤 상태로 바꿀 수 있습니다. 실제 영상의 질감과 인공물을 대신하지 않습니다.</p>
+  <p><b>초음파 영상</b>: 조직별 에코 강도, 감쇠, 경계면 반사(간정맥 벽은 빔이 수직일 때만 밝음), 스펙클, 뼈 음영, 장 가스의 밝은 경계와 지저분한 음영·잔향, 액체 뒤 후방 증강, 횡격막 거울상, 폐의 링다운(탐촉자를 머리 쪽으로 많이 눕힐 때)과 A선을 단순한 규칙으로 흉내 낸 것입니다. 위는 공복 상태의 혼합 에코를 기본으로 하고, 영상 아래 '위 내용'에서 가스(자세에 따라 위쪽에 모임)와 물 마신 뒤 상태로 바꿀 수 있습니다. 실제 영상의 질감과 인공물을 대신하지 않습니다.</p>
+  <p><b>호흡과 자세</b>: 모델 원래 상태를 평상 호흡·앙와위로 봅니다. 최대 흡기에서는 횡격막 돔과 간이 3.5 cm 내려가고, 최대 호기에서는 2.5 cm 올라갑니다(깊은 호흡의 횡격막 이동 범위 약 6 cm, Boussuges 외 2009). 다른 장기는 그 일정 비율만큼 움직입니다(비장 0.85, 위 0.75, 신장 약 0.6, 췌장 0.55, 대동맥 0). 폐 아랫부분은 늑골횡격막각으로 내려옵니다. 흡기 때 늑골 앞끝은 올라가면서 앞으로 나오고, 아래쪽 늑골은 바깥으로 벌어지며, 복벽은 앞으로 나옵니다. 측와위에서는 위쪽 횡격막이 1 cm 내려가고, 장기가 침대 쪽으로 0.3–2 cm 쏠리며(담낭·장이 가장 많이), 위쪽 흉벽의 늑간이 넓어집니다. 프로브는 기본적으로 같은 구조를 다시 겨냥하고, '프로브 고정'을 켜면 제자리에 둔 채 장기만 움직입니다. 장기의 모양 변화, 간정맥·하대정맥 구경 변화, 대장 가스의 재분포는 넣지 않았고, 이동량은 개인차가 큰 대표값입니다.</p>
   <p><b>실제 영상 넣기</b>: <code>us_images/01.jpg</code> ~ <code>17.jpg</code>(또는 .png)를 두면 해당 영상 옆에 자동으로 나타납니다. 영상 칸에 파일을 끌어다 놓아도 이 브라우저에만 저장됩니다.</p>
   <p><b>표준영상 목록</b>: 복부초음파 강의 시리즈(Vol.01–19) 교재의 "복부초음파 기본 17 VIEW"(교재 p.42) 순서와 이름을 따랐습니다(1–14 앙와위, 15–17 좌측와위). 참고: 대한초음파의학회 상복부 초음파 표준영상(일반 12·정밀 15), 국립암센터 간암 검진 질지침.</p>
   <form method="dialog"><button class="btn">닫기</button></form>
@@ -349,18 +360,39 @@ function hvWall(c, x, y, z, dx, dy, dz) {
   const n = Math.hypot(gx, gy, gz), cs = n > 0 ? Math.abs(gx * dx + gy * dy + gz * dz) / n : 0;
   return WALL[c] + .55 * cs ** 6;
 }
-// stomach gas map: most anterior (smallest y) stomach voxel per (x,z) column; gas lies in the non-dependent lumen when supine
-let STYMIN = null;
+// stomach gas map: the non-dependent edge of the stomach per column. Supine: most anterior (smallest y) voxel per (x,z);
+// left lateral decubitus: most right-sided (smallest x) per (y,z), so gas rises into the antrum/bulb; right decubitus: most
+// left-sided (largest x), gas in the fundus
+let STMAP = null, STAX = 'sup';
 function buildStomachMap() {
-  STYMIN = new Float32Array(NX * NZ).fill(1e9);
+  STAX = POSE.pos;
+  if (STAX === 'sup') {
+    STMAP = new Float32Array(NX * NZ).fill(1e9);
+    for (let k = 0; k < NZ; k++) for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++)
+      if (VOLU8[i + NX * (j + NY * k)] === STOM && STMAP[i + NX * k] > 1e8) STMAP[i + NX * k] = LO1 + (j + .5) * PITCH;
+    return;
+  }
+  const lld = STAX === 'lld';
+  STMAP = new Float32Array(NY * NZ).fill(lld ? 1e9 : -1e9);
   for (let k = 0; k < NZ; k++) for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++)
-    if (VOLU8[i + NX * (j + NY * k)] === STOM && STYMIN[i + NX * k] > 1e8) STYMIN[i + NX * k] = LO1 + (j + .5) * PITCH;
+    if (VOLU8[i + NX * (j + NY * k)] === STOM) {
+      const x = LO0 + (i + .5) * PITCH, m = j + NY * k;
+      if (lld ? x < STMAP[m] : x > STMAP[m]) STMAP[m] = x;
+    }
 }
 function stomachGasAt(x, y, z) {
-  if (US.stomach !== 'gas' || !STYMIN || x < 25) return false;      // body/fundus only (patient left of midline); the antrum stays gasless
-  const i = Math.floor((x - LO0) * IP), k = Math.floor((z - LO2) * IP);
-  if (i < 0 || k < 0 || i >= NX || k >= NZ) return false;
-  return y - STYMIN[i + NX * k] < 9 && hash3(Math.floor(x / 12), 5, Math.floor(z / 12)) > .35; // patchy anterior gas cap
+  if (US.stomach !== 'gas' || !STMAP) return false;
+  const k = Math.floor((z - LO2) * IP);
+  if (STAX === 'sup') {
+    if (x < 25) return false;                                         // body/fundus only (patient left of midline); the antrum stays gasless
+    const i = Math.floor((x - LO0) * IP);
+    if (i < 0 || k < 0 || i >= NX || k >= NZ) return false;
+    return y - STMAP[i + NX * k] < 9 && hash3(Math.floor(x / 12), 5, Math.floor(z / 12)) > .35; // patchy anterior gas cap
+  }
+  const j = Math.floor((y - LO1) * IP);
+  if (j < 0 || k < 0 || j >= NY || k >= NZ) return false;
+  const d = STAX === 'lld' ? x - STMAP[j + NY * k] : STMAP[j + NY * k] - x;
+  return d < 9 && hash3(Math.floor(y / 12), 5, Math.floor(z / 12)) > .35;
 }
 
 /* ---------- 3D mesh registry: mesh key -> codes, group, colour */
@@ -388,6 +420,232 @@ function codeAt(x, y, z) {
 }
 const codeP = p => codeAt(p[0], p[1], p[2]);
 
+/* ---------- respiration and patient position
+   The label volume (and the meshes) are warped by two displacement fields, in BodyParts3D mm:
+   - wall (ribs, costal cartilage, skin, fat, muscle): analytic rib-cage motion. On inspiration the anterior rib ends rise
+     and move forward (pump handle), the lower ribs swing outward (bucket handle) and the abdominal wall bulges forward.
+     In a lateral decubitus the uppermost chest wall is stretched (wider intercostal spaces), the dependent side compressed.
+   - inner (diaphragm, lung, heart, every abdominal organ): each structure has a target shift = its fraction of the
+     diaphragm-dome excursion (+ the hemidiaphragm change in a decubitus) + a gravity shift toward the table. A normalized
+     box-Gaussian blur of those targets gives one smooth field, so vessels that cross organs stay continuous.
+   Spine, psoas and aorta stay fixed. Wall and inner slide past each other (pleura, peritoneum).
+   The model at rest (breath 0, supine) is taken as quiet tidal breathing. Dome excursion: 35 mm caudal on deep inspiration,
+   25 mm cranial on forced expiration (deep-breathing excursion ~57-70 mm, Boussuges et al., Chest 2009). Liver ~ dome;
+   spleen .85; stomach .75; kidneys ~.6; pancreas ~.55; aorta 0. Lateral decubitus: non-dependent hemidiaphragm 10 mm lower,
+   dependent one 10 mm higher; mobile organs fall 3-20 mm toward the table (GB and bowel most). */
+const POSE = { breath: 0, pos: 'sup', hold: false };        // breath: -1 forced expiration .. 0 quiet .. +1 deep inspiration
+const BR = { insp: 35, exp: 25, ap: .15, elev: 12, ant: 8, lat: .035, bulge: 10, side: 10, kUp: .10, kDn: -.03 };
+let VOL0 = null, VBUF = null, DEF = null;                    // original labels, warp buffer, current fields (null at rest)
+const smooth = (a, b, v) => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
+const clamp01 = v => Math.min(1, Math.max(0, v));
+function postureParams() {
+  const b = POSE.breath, s = POSE.pos === 'lld' ? 1 : POSE.pos === 'rld' ? -1 : 0;   // s: +1 gravity toward patient left
+  const si = b >= 0 ? -BR.insp * b : -BR.exp * b;            // dome shift, + = cranial
+  const cb = b >= 0 ? b : .5 * b;                            // the rib cage moves less on forced expiration
+  return { b, s, si, ap: BR.ap * si, elev: BR.elev * cb, ant: BR.ant * cb, lat: BR.lat * cb, bulge: BR.bulge * cb };
+}
+const uAnt = y => clamp01((-40 - y) / 170);                  // 0 at the costovertebral joints, 1 at the sternum
+const W3 = new Float64Array(3), E3 = new Float64Array(3);
+// field grid (GSTEP mm nodes from the volume corner) and a separable box blur used for normalized convolution
+const GSTEP = 6;
+function gridDims() {
+  const GX = Math.ceil(NX * PITCH / GSTEP) + 2, GY = Math.ceil(NY * PITCH / GSTEP) + 2, GZ = Math.ceil(NZ * PITCH / GSTEP) + 2;
+  const ni = new Int32Array(NX), nj = new Int32Array(NY), nk = new Int32Array(NZ);
+  for (let i = 0; i < NX; i++) ni[i] = Math.round((i + .5) * PITCH / GSTEP);
+  for (let j = 0; j < NY; j++) nj[j] = Math.round((j + .5) * PITCH / GSTEP);
+  for (let k = 0; k < NZ; k++) nk[k] = Math.round((k + .5) * PITCH / GSTEP);
+  return { GX, GY, GZ, GN: GX * GY * GZ, ni, nj, nk };
+}
+function gridBlur(a, GX, GY, GZ, r) {                       // two passes of a (2r+1) box per axis, zero outside
+  const out = a.slice(), tmp = new Float32Array(a.length), n = 2 * r + 1;
+  const line = (src, dst, start, stride, len) => {
+    let s = 0;
+    for (let t = 0; t <= r && t < len; t++) s += src[start + t * stride];
+    for (let t = 0; t < len; t++) {
+      dst[start + t * stride] = s / n;
+      if (t + r + 1 < len) s += src[start + (t + r + 1) * stride];
+      if (t - r >= 0) s -= src[start + (t - r) * stride];
+    }
+  };
+  for (let pass = 0; pass < 2; pass++) {
+    for (let z = 0; z < GZ; z++) for (let y = 0; y < GY; y++) line(out, tmp, GX * (y + GY * z), 1, GX);
+    for (let z = 0; z < GZ; z++) for (let x = 0; x < GX; x++) line(tmp, out, x + GX * GY * z, GX, GY);
+    for (let y = 0; y < GY; y++) for (let x = 0; x < GX; x++) line(out, tmp, x + GX * y, GX * GY, GZ);
+    out.set(tmp);
+  }
+  return out;
+}
+function gridSample1(G, A, x, y, z) {                       // trilinear, one channel, clamped to the grid
+  let fx = (x - LO0) / GSTEP, fy = (y - LO1) / GSTEP, fz = (z - LO2) / GSTEP;
+  fx = Math.min(G.GX - 1.001, Math.max(0, fx)); fy = Math.min(G.GY - 1.001, Math.max(0, fy)); fz = Math.min(G.GZ - 1.001, Math.max(0, fz));
+  const x0 = fx | 0, y0 = fy | 0, z0 = fz | 0, tx = fx - x0, ty = fy - y0, tz = fz - z0, n = x0 + G.GX * (y0 + G.GY * z0), sy = G.GX, sz = G.GX * G.GY;
+  return ((A[n] * (1 - tx) + A[n + 1] * tx) * (1 - ty) + (A[n + sy] * (1 - tx) + A[n + sy + 1] * tx) * ty) * (1 - tz)
+    + ((A[n + sz] * (1 - tx) + A[n + sz + 1] * tx) * (1 - ty) + (A[n + sz + sy] * (1 - tx) + A[n + sz + sy + 1] * tx) * ty) * tz;
+}
+// cage weight: 1 where the body wall carries ribs or costal cartilage, 0 in the abdominal wall below the costal margin
+// (share of rib/cartilage among wall voxels within ~1-2 cm), so the oblique costal margin is followed, not a fixed height
+let CAGE = null;
+function cageGrid() {
+  if (CAGE) return CAGE;
+  const g = gridDims(), R = new Float32Array(g.GN), T = new Float32Array(g.GN), RIB = LBL.ribs, CART = LBL.cart;
+  for (let k = 0, idx = 0; k < NZ; k++) for (let j = 0; j < NY; j++) {
+    const row = g.GX * (g.nj[j] + g.GY * g.nk[k]);
+    for (let i = 0; i < NX; i++, idx++) { const c = VOL0[idx]; if (!WALLC[c]) continue; const n = row + g.ni[i]; T[n]++; if (c === RIB || c === CART) R[n]++; }
+  }
+  const rb = gridBlur(R, g.GX, g.GY, g.GZ, 2), tb = gridBlur(T, g.GX, g.GY, g.GZ, 2), W = new Float32Array(g.GN);
+  for (let n = 0; n < g.GN; n++) W[n] = tb[n] > 1e-3 ? smooth(.06, .22, rb[n] / tb[n]) : 0;
+  return CAGE = { GX: g.GX, GY: g.GY, GZ: g.GZ, W };
+}
+function wallDisp(P, x, y, z, out = W3) {
+  const ua = uAnt(y), th = gridSample1(cageGrid(), CAGE.W, x, y, z), lo = smooth(1240, 1130, z), ab = smooth(890, 960, z);
+  const up = P.s > 0 ? smooth(-30, -110, x) : P.s < 0 ? smooth(30, 110, x) : 0;
+  const dn = P.s > 0 ? smooth(30, 110, x) : P.s < 0 ? smooth(-30, -110, x) : 0;
+  out[0] = P.lat * x * lo * th;
+  out[1] = -P.ant * ua * th - P.bulge * ua * (1 - th) * ab;
+  out[2] = P.elev * ua * th + (BR.kUp * up + BR.kDn * dn) * (z - 1100);
+  return out;
+}
+// per-structure fraction of the dome excursion (number or function of z) and gravity shift [mm toward +x in LLD, toward -x in RLD]
+const INNER_F = {
+  diaph: z => .3 + .7 * smooth(990, 1060, z), lung: z => 1 - .55 * clamp01((z - 1150) / 110), heart: .45,
+  s1: 1, s2: 1, s3: 1, s4: 1, s4b: 1, s5: 1, s6: 1, s7: 1, s8: 1, rhv: 1, mhv: 1, lhv: 1, rpv: 1, lpv: 1, rapv: 1, rppv: 1, lhd: 1, gb: 1,
+  mpv: .85, ha: .75, gda: .55, bile: z => .6 + .4 * smooth(1030, 1095, z), ivc: z => .35 + .65 * smooth(1050, 1110, z),
+  renv: .4, celiac: .25, sma: .25, spla: .6, rena: .3, splv: .6, smv: .45, pancreas: .55, pduct: .55,
+  duod: .5, stomach: .75, colon: z => .25 + .45 * smooth(950, 1040, z), spleen: .85, rkid: .6, lkid: .55, sinus: .58, medulla: .58, adrenal: .55,
+};
+const LIVER_G = [12, 3];
+const GRAV = {
+  s1: LIVER_G, s2: LIVER_G, s3: LIVER_G, s4: LIVER_G, s4b: LIVER_G, s5: LIVER_G, s6: LIVER_G, s7: LIVER_G, s8: LIVER_G,
+  rhv: LIVER_G, mhv: LIVER_G, lhv: LIVER_G, rpv: LIVER_G, lpv: LIVER_G, rapv: LIVER_G, rppv: LIVER_G, lhd: LIVER_G, gb: [20, 5],
+  mpv: [9, 3], ha: [9, 3], gda: [8, 4], bile: [9, 3], ivc: [5, 2], pancreas: [6, 6], pduct: [6, 6], splv: [6, 6], smv: [6, 6], celiac: [4, 4], sma: [4, 4],
+  spla: [4, 8], duod: [12, 10], stomach: [14, 14], colon: [20, 20], spleen: [3, 10], rkid: [10, 3], lkid: [3, 8], sinus: [6, 6], medulla: [6, 6],
+  renv: [4, 4], rena: [4, 4], adrenal: [3, 3], heart: [6, 6],
+};
+const WALLC = new Uint8Array(256), FIXC = new Uint8Array(256), INNERC = new Uint8Array(256);
+for (const n of ['skin', 'fat', 'muscle', 'ribs', 'cart']) WALLC[LBL[n]] = 1;
+for (const n of ['spine', 'psoas', 'aorta']) FIXC[LBL[n]] = 1;
+INNERC[LBL.soft] = 1; for (const n in INNER_F) if (LBL[n] !== undefined) INNERC[LBL[n]] = 1;
+function buildFields(P) {
+  const { GX, GY, GZ, GN, ni, nj, nk } = gridDims(), xs = new Float32Array(NX), cage = cageGrid();
+  for (let i = 0; i < NX; i++) xs[i] = LO0 + (i + .5) * PITCH;
+  const FT = new Float32Array(256 * NZ).fill(-1), MXC = new Float32Array(256), SIDE = new Float32Array(NX);
+  for (const n in INNER_F) {
+    const c = LBL[n]; if (c === undefined) continue;
+    const f = INNER_F[n];
+    for (let k = 0; k < NZ; k++) FT[c * NZ + k] = typeof f === 'function' ? f(LO2 + (k + .5) * PITCH) : f;
+    const g = GRAV[n]; MXC[c] = g ? (P.s > 0 ? g[0] : P.s < 0 ? -g[1] : 0) : 0;
+  }
+  for (let i = 0; i < NX; i++) SIDE[i] = BR.side * P.s * Math.tanh(xs[i] / 50);
+  const LUNG = LBL.lung, UA = new Float32Array(NY), LOW = new Float32Array(NZ);
+  for (let j = 0; j < NY; j++) UA[j] = uAnt(LO1 + (j + .5) * PITCH);
+  for (let k = 0; k < NZ; k++) LOW[k] = smooth(1240, 1130, LO2 + (k + .5) * PITCH);
+  // splat the per-voxel targets onto the grid
+  const SX = new Float32Array(GN), SY = new Float32Array(GN), SZ = new Float32Array(GN), SW = new Float32Array(GN);
+  for (let k = 0, idx = 0; k < NZ; k++) for (let j = 0; j < NY; j++) {
+    const row = GX * (nj[j] + GY * nk[k]);
+    for (let i = 0; i < NX; i++, idx++) {
+      const c = VOL0[idx], f = FT[c * NZ + k]; if (f < 0) continue;
+      const n = row + ni[i];
+      let dx = MXC[c], dy = f * P.ap;
+      if (c === LUNG) {                                    // the lung follows the chest wall outward and forward
+        const th = gridSample1(cage, cage.W, xs[i], LO1 + (j + .5) * PITCH, LO2 + (k + .5) * PITCH);
+        dx += P.lat * xs[i] * LOW[k] * th; dy -= P.ant * UA[j] * th;
+      }
+      SX[n] += dx; SY[n] += dy; SZ[n] += f * (P.si + SIDE[i]); SW[n] += 1;
+    }
+  }
+  // normalized convolution: a narrow kernel (sigma ~12 mm) plus a faint wide one that fills the gaps between organs
+  const blur = (a, r) => gridBlur(a, GX, GY, GZ, r);
+  const nW = blur(SW, 2), wW = blur(SW, 6), DX = new Float32Array(GN), DY = new Float32Array(GN), DZ = new Float32Array(GN);
+  for (const [S_, D_] of [[SX, DX], [SY, DY], [SZ, DZ]]) {
+    const a = blur(S_, 2), b = blur(S_, 6);
+    for (let n = 0; n < GN; n++) { const w = nW[n] + .05 * wW[n]; D_[n] = w > 1e-4 ? (a[n] + .05 * b[n]) / w : 0; }
+  }
+  const F = { P, GX, GY, GZ, DX, DY, DZ, EX: new Float32Array(GN), EY: new Float32Array(GN), EZ: new Float32Array(GN) };
+  // inverse field on the grid: e(n) with (n - e) + d(n - e) = n, by fixed-point iteration
+  for (let z = 0, n = 0; z < GZ; z++) for (let y = 0; y < GY; y++) for (let x = 0; x < GX; x++, n++) {
+    const px = LO0 + x * GSTEP, py = LO1 + y * GSTEP, pz = LO2 + z * GSTEP;
+    let ex = DX[n], ey = DY[n], ez = DZ[n];
+    for (let it = 0; it < 4; it++) { gridSample(F, F.DX, F.DY, F.DZ, px - ex, py - ey, pz - ez, E3); ex = E3[0]; ey = E3[1]; ez = E3[2]; }
+    F.EX[n] = ex; F.EY[n] = ey; F.EZ[n] = ez;
+  }
+  return F;
+}
+function gridSample(F, AX, AY, AZ, x, y, z, out) {        // trilinear, clamped to the grid
+  const { GX, GY, GZ } = F;
+  let fx = (x - LO0) / GSTEP, fy = (y - LO1) / GSTEP, fz = (z - LO2) / GSTEP;
+  fx = Math.min(GX - 1.001, Math.max(0, fx)); fy = Math.min(GY - 1.001, Math.max(0, fy)); fz = Math.min(GZ - 1.001, Math.max(0, fz));
+  const x0 = fx | 0, y0 = fy | 0, z0 = fz | 0, tx = fx - x0, ty = fy - y0, tz = fz - z0;
+  const n = x0 + GX * (y0 + GY * z0), sy = GX, sz = GX * GY;
+  const w000 = (1 - tx) * (1 - ty) * (1 - tz), w100 = tx * (1 - ty) * (1 - tz), w010 = (1 - tx) * ty * (1 - tz), w110 = tx * ty * (1 - tz);
+  const w001 = (1 - tx) * (1 - ty) * tz, w101 = tx * (1 - ty) * tz, w011 = (1 - tx) * ty * tz, w111 = tx * ty * tz;
+  for (const [c, A] of [[0, AX], [1, AY], [2, AZ]])
+    out[c] = A[n] * w000 + A[n + 1] * w100 + A[n + sy] * w010 + A[n + sy + 1] * w110 + A[n + sz] * w001 + A[n + sz + 1] * w101 + A[n + sz + sy] * w011 + A[n + sz + sy + 1] * w111;
+  return out;
+}
+const fwdInner = p => { if (!DEF) return p.slice(); const d = gridSample(DEF, DEF.DX, DEF.DY, DEF.DZ, p[0], p[1], p[2], E3); return [p[0] + d[0], p[1] + d[1], p[2] + d[2]]; };
+const fwdWall = p => { if (!DEF) return p.slice(); const d = wallDisp(DEF.P, p[0], p[1], p[2]); return [p[0] + d[0], p[1] + d[1], p[2] + d[2]]; };
+// position in the resting model of a (deformed) point that carries code c: speckle, lumen texture and fixed landmarks follow the tissue
+const SRC = new Float64Array(3);
+function srcOf(c, x, y, z) {
+  SRC[0] = x; SRC[1] = y; SRC[2] = z;
+  if (!DEF || !c || FIXC[c]) return SRC;
+  const d = WALLC[c] ? wallDisp(DEF.P, x, y, z) : gridSample(DEF, DEF.EX, DEF.EY, DEF.EZ, x, y, z, E3);
+  SRC[0] -= d[0]; SRC[1] -= d[1]; SRC[2] -= d[2];
+  return SRC;
+}
+function warpVolume(F) {
+  const P = F.P, { GX, GY } = F, SOFT = LBL.soft, LUNG = LBL.lung, zTop = LO2 + NZ * PITCH;
+  if (!VBUF) VBUF = new Uint8Array(VOL0.length);
+  const UA = new Float32Array(NY), LOW = new Float32Array(NZ), AB = new Float32Array(NZ), UP = new Float32Array(NX), DN = new Float32Array(NX);
+  const CW = cageGrid().W;                                   // same node layout as the inner field
+  for (let j = 0; j < NY; j++) UA[j] = uAnt(LO1 + (j + .5) * PITCH);
+  for (let k = 0; k < NZ; k++) { const z = LO2 + (k + .5) * PITCH; LOW[k] = smooth(1240, 1130, z); AB[k] = smooth(890, 960, z); }
+  for (let i = 0; i < NX; i++) {
+    const x = LO0 + (i + .5) * PITCH;
+    UP[i] = P.s > 0 ? smooth(-30, -110, x) : P.s < 0 ? smooth(30, 110, x) : 0;
+    DN[i] = P.s > 0 ? smooth(30, 110, x) : P.s < 0 ? smooth(-30, -110, x) : 0;
+  }
+  const RX = new Float32Array(GX), RY = new Float32Array(GX), RZ = new Float32Array(GX), RC_ = new Float32Array(GX), sz = GX * GY;
+  for (let k = 0, idx = 0; k < NZ; k++) {
+    const z = LO2 + (k + .5) * PITCH;
+    let fz = Math.min(F.GZ - 1.001, Math.max(0, (z - LO2) / GSTEP)); const z0 = fz | 0, tz = fz - z0;
+    for (let j = 0; j < NY; j++) {
+      const y = LO1 + (j + .5) * PITCH, ua = UA[j];
+      let fy = Math.min(GY - 1.001, Math.max(0, (y - LO1) / GSTEP)); const y0 = fy | 0, ty = fy - y0;
+      const b = GX * (y0 + GY * z0), w00 = (1 - ty) * (1 - tz), w10 = ty * (1 - tz), w01 = (1 - ty) * tz, w11 = ty * tz;
+      for (let n = 0; n < GX; n++) {                      // inverse field along this row at every grid column
+        const a = b + n;
+        RX[n] = F.EX[a] * w00 + F.EX[a + GX] * w10 + F.EX[a + sz] * w01 + F.EX[a + sz + GX] * w11;
+        RY[n] = F.EY[a] * w00 + F.EY[a + GX] * w10 + F.EY[a + sz] * w01 + F.EY[a + sz + GX] * w11;
+        RZ[n] = F.EZ[a] * w00 + F.EZ[a + GX] * w10 + F.EZ[a + sz] * w01 + F.EZ[a + sz + GX] * w11;
+        RC_[n] = CW[a] * w00 + CW[a + GX] * w10 + CW[a + sz] * w01 + CW[a + sz + GX] * w11;
+      }
+      const zr = z - 1100;
+      for (let i = 0; i < NX; i++, idx++) {
+        const x = LO0 + (i + .5) * PITCH;
+        let fx = Math.min(GX - 1.001, Math.max(0, (x - LO0) / GSTEP)); const x0 = fx | 0, tx = fx - x0;
+        // 1. wall layer (one-step inverse of the analytic wall motion; its gradient is small)
+        const th = RC_[x0] + (RC_[x0 + 1] - RC_[x0]) * tx;
+        const wx = P.lat * x * LOW[k] * th, wy = -P.ant * ua * th - P.bulge * ua * (1 - th) * AB[k];
+        const wz = P.elev * ua * th + (BR.kUp * UP[i] + BR.kDn * DN[i]) * zr;
+        let qi = Math.floor((x - wx - LO0) * IP), qj = Math.floor((y - wy - LO1) * IP), qk = Math.floor((z - wz - LO2) * IP);
+        let c = qi < 0 || qj < 0 || qk < 0 || qi >= NX || qj >= NY || qk >= NZ ? 0 : VOL0[qi + NX * (qj + NY * qk)];
+        if (c === 0 || WALLC[c]) { VBUF[idx] = c; continue; }
+        // 2. fixed structures
+        const c0 = VOL0[idx];
+        if (FIXC[c0]) { VBUF[idx] = c0; continue; }
+        // 3. inner layer (inverse field, linear along the row)
+        const ex = RX[x0] + (RX[x0 + 1] - RX[x0]) * tx, ey = RY[x0] + (RY[x0 + 1] - RY[x0]) * tx, ez = RZ[x0] + (RZ[x0 + 1] - RZ[x0]) * tx;
+        qi = Math.floor((x - ex - LO0) * IP); qj = Math.floor((y - ey - LO1) * IP); qk = Math.floor((z - ez - LO2) * IP);
+        if (qk >= NZ) qk = NZ - 1; else if (qk < 0) qk = 0;    // above/below the box: repeat the edge slice
+        c = qi < 0 || qj < 0 || qi >= NX || qj >= NY ? 0 : VOL0[qi + NX * (qj + NY * qk)];
+        VBUF[idx] = INNERC[c] ? c : (c === 0 && z - ez > zTop ? LUNG : SOFT);   // a gap left by sliding organs is filled with fat
+      }
+    }
+  }
+}
+
 /* ---------- probe pose */
 const RC = 40, FOV = 32 * Math.PI / 180;
 function snapBack(T, D) { // from inside point T march against D until outside the body
@@ -401,16 +659,28 @@ function snapAlong(P0, D) { // surface where the line through P0 (direction D) e
   for (let i = 0; i < 400 && codeP(p) === 0; i++) p = add(p, D);
   return p;
 }
+// view geometry is defined on the resting model. With breathing/position applied the probe either re-aims at the same
+// anatomy (target T moves with the organs, skin point E with the wall), or, with 'probe hold', keeps its resting skin
+// spot and beam so the organs move under it.
 function basePose(v) {
+  if (!DEF) return basePose0(v, v.T, v.E);
+  if (POSE.hold) {
+    const cur = VOLU8; VOLU8 = VOL0;
+    let p; try { p = basePose0(v, v.T, v.E); } finally { VOLU8 = cur; }
+    return { E: snapAlong(fwdWall(p.E), p.D), D: p.D, L: p.L };
+  }
+  return basePose0(v, fwdInner(v.T), v.E ? fwdWall(v.E) : null);
+}
+function basePose0(v, vT, vE) {
   let D, E;
-  if (v.E) { D = nrm(sub(v.T, v.E)); E = snapAlong(v.E, D); }
+  if (vE) { D = nrm(sub(vT, vE)); E = snapAlong(vE, D); }
   else D = nrm(v.D);
   let H = v.H.slice();
   let N = null;
   if (v.normalAxis) { N = nrm(v.normalAxis); N = nrm(sub(N, mul(D, dot(N, D)))); H = sub(H, mul(N, dot(H, N))); }
   let L = nrm(sub(H, mul(D, dot(H, D))));
-  if (!v.E) {
-    if (!v.avoidRib) E = snapBack(v.T, D);
+  if (!vE) {
+    if (!v.avoidRib) E = snapBack(vT, D);
     else {
       // intercostal window: search sliding (along the plane normal) and rotation about the beam
       // for the pose whose fan crosses the fewest ribs in the near field
@@ -418,7 +688,7 @@ function basePose(v) {
       for (let rot = -20; rot <= 20; rot += 5) {
         const Lr = rotAxis(L, D, rot), n = nrm(cross(D, Lr));
         for (let sh = -24; sh <= 24; sh += 3) {
-          const e = snapBack(add(v.T, mul(n, sh)), D);
+          const e = snapBack(add(vT, mul(n, sh)), D);
           let bone = 0;
           for (let i = 0; i <= 20; i++) {
             const th = -FOV + 2 * FOV * i / 20, dir = sub(mul(D, Math.cos(th)), mul(Lr, Math.sin(th)));
@@ -517,6 +787,7 @@ function renderUS(pose) {
       if (code === 0 && !outside && mirror < 0 && pl < 0 && prev > 0 && r < 60 &&
         (codeAt(x + dx * 1.5, y + dy * 1.5, z + dz * 1.5) || codeAt(x + dx * 3, y + dy * 3, z + dz * 3) || codeAt(x + dx * 4.5, y + dy * 4.5, z + dz * 4.5))) code = prev;
       LAB[base + k] = code;
+      const sp0 = srcOf(code, x, y, z), xs = sp0[0], ys = sp0[1], zs = sp0[2];   // the same tissue point in the resting model
       let kind = KIND[code], at = ATT[code];
       if (GUT[code] && code !== prev) gutK = k;
       if (code === COLON) kind = (k - gutK) * ds > 1.6 && !squeeze ? 4 : 0;   // colon gas behind its wall; a compressed (squeezed) loop shows its contents instead
@@ -525,13 +796,13 @@ function renderUS(pose) {
       if (prev >= 0 && code !== prev && mirror < 0 && pl < 0 && !outside && !inGas) {
         let w = 0, len = 3, tail = .55;
         if (GRP[code] !== GRP[prev]) {
-          if (z >= SAMEZ[code << 8 | prev]) w = 0;                                                   // label change inside one lumen
+          if (zs >= SAMEZ[code << 8 | prev]) w = 0;                                                  // label change inside one lumen
           else if (GRP[prev] === LIVERG && KIND[code] === 1) w = HVW[code] ? hvWall(code, x, y, z, dx, dy, dz) : WALL[code]; // liver|vessel: the vessel's own wall
           else if (GRP[code] === LIVERG && KIND[prev] === 1) w = HVW[prev] ? hvWall(prev, x, y, z, dx, dy, dz) : WALL[prev];
           else w = Math.max(WALL[code], WALL[prev]);
         }
         else if (GRP[code] === LIVERG && ((code === S1 && (prev === S2 || prev === S3)) || (prev === S1 && (code === S2 || code === S3)))) w = .55; // ligamentum venosum fissure: S1 | left lateral section only
-        else if (GRP[code] === LIVERG && z < 1124 && (((code === S3 || code === S2) && (prev === S4 || prev === S4B)) || ((prev === S3 || prev === S2) && (code === S4 || code === S4B)))) { // ligamentum teres
+        else if (GRP[code] === LIVERG && zs < 1124 && (((code === S3 || code === S2) && (prev === S4 || prev === S4B)) || ((prev === S3 || prev === S2) && (code === S4 || code === S4B)))) { // ligamentum teres
           w = .6;
           if (!teresDone) { teresDone = true; len = Math.max(3, Math.round(3 / ds)); tail = .85; T *= .7; } // round echogenic focus with a fibro-fatty shadow
         }
@@ -560,14 +831,14 @@ function renderUS(pose) {
           else if (d < 2.4) e = .16;
           else if (d < 3.2) e = .65;
           else if (code === STOM && US.stomach === 'water') { e = .03; at = .25; }
-          else { const h = vnoise(x, y, z, 4, 17); e = .05 + .5 * h * h; at = code === COLON && !squeeze ? .7 : .45; } // fluid + debris
+          else { const h = vnoise(xs, ys, zs, 4, 17); e = .05 + .5 * h * h; at = code === COLON && !squeeze ? .7 : .45; } // fluid + debris
         } else if (code === HEART) {            // myocardial shell around an anechoic blood pool (the heart label is an ellipsoid, tools/build_volume.py)
-          const b = ((x - 22) / 62) ** 2 + ((y + 140) / 50) ** 2 + ((z - 1228) / 60) ** 2 < .72;
+          const b = ((xs - 22) / 62) ** 2 + ((ys + 140) / 50) ** 2 + ((zs - 1228) / 60) ** 2 < .72;
           if (b) { e = .02; at = .2; }
           if (b !== blood && prev === HEART) { ifcVal = .3; ifcLeft = ifcLen = 3; ifcTail = .55; }
           blood = b;
         }
-        const u = hash3(Math.floor(x * 3.2), Math.floor(y * 3.2), Math.floor(z * 3.2));
+        const u = hash3(Math.floor(xs * 3.2), Math.floor(ys * 3.2), Math.floor(zs * 3.2));
         const sp = -Math.log(1 - .985 * u);
         v = T * e * (.3 + .7 * sp);
       }
@@ -756,22 +1027,85 @@ async function buildMeshes() {
     mesh.renderOrder = { skin: 10, diaph: 6, gi: 5, liver: 4, organ: 3, vessel: 2, bone: 1 }[group];
     scene.add(mesh);
     geo.computeBoundingBox();
-    MESH[m.key] = { mesh, mat, codes, group, op: BASE_OP[group], target: BASE_OP[group], hit: false };
+    const layer = m.key === 'skin' || WALLC[codes[0]] ? 'wall' : FIXC[codes[0]] ? 'fixed' : 'inner';
+    MESH[m.key] = { mesh, mat, codes, group, layer, p0: pos.slice(), op: BASE_OP[group], target: BASE_OP[group], hit: false };
     loadmsg.textContent = `3D 모델 구성 중… ${Object.keys(MESH).length}/${A.meshes.length}`;
   }
   // segment number tags at segment centroids
   for (let s = 1; s <= 8; s++) {
-    const g = MESH['seg' + s].mesh.geometry, p = g.attributes.position.array, c = new THREE.Vector3();
-    for (let i = 0; i < p.length; i += 3) c.add(new THREE.Vector3(p[i], p[i + 1], p[i + 2]));
-    c.multiplyScalar(3 / p.length);
     const el = document.createElement('div'); el.className = 'seglab'; el.textContent = 'S' + s; el.style.background = SEGCOL[s];
-    const o = new CSS2DObject(el); o.position.copy(c); scene.add(o);
+    const o = new CSS2DObject(el); scene.add(o);
     MESH['seg' + s].tag = el; MESH['seg' + s].tagObj = o;
   }
+  placeSegTags();
   for (const [txt, p] of [['환자 우측', [-185, -120, 1060]], ['환자 좌측', [185, -120, 1060]], ['머리', [0, -120, 1270]]]) {
     const el = document.createElement('div'); el.className = 'sidelab'; el.textContent = txt;
     const o = new CSS2DObject(el); o.position.copy(bp2w(p)); scene.add(o);
   }
+}
+
+function placeSegTags() {
+  for (let s = 1; s <= 8; s++) {
+    const m = MESH['seg' + s], p = m.mesh.geometry.attributes.position.array, c = new THREE.Vector3();
+    for (let i = 0; i < p.length; i += 3) { c.x += p[i]; c.y += p[i + 1]; c.z += p[i + 2]; }
+    m.tagObj.position.copy(c.multiplyScalar(3 / p.length));
+  }
+}
+// move every mesh with its layer's field (vertex world cm -> BodyParts3D mm -> displacement -> world cm)
+function deformMeshes() {
+  for (const m of Object.values(MESH)) {
+    const g = m.mesh.geometry, pos = g.attributes.position.array, p0 = m.p0;
+    if (!DEF || m.layer === 'fixed') pos.set(p0);
+    else for (let i = 0; i < p0.length; i += 3) {
+      const x = p0[i] / S + C[0], y = -p0[i + 2] / S + C[1], z = p0[i + 1] / S + C[2];
+      const d = m.layer === 'wall' ? wallDisp(DEF.P, x, y, z) : gridSample(DEF, DEF.DX, DEF.DY, DEF.DZ, x, y, z, E3);
+      pos[i] = p0[i] + d[0] * S; pos[i + 1] = p0[i + 1] + d[2] * S; pos[i + 2] = p0[i + 2] - d[1] * S;
+    }
+    g.attributes.position.needsUpdate = true; g.computeVertexNormals(); g.computeBoundingSphere();
+  }
+  placeSegTags();
+}
+const POSKO = { sup: '앙와위', lld: '좌측와위(LLD)', rld: '우측와위(RLD)' };
+function breathText(b) {
+  if (b <= -1) return '최대 호기'; if (b <= -.5) return '호기'; if (b < 0) return '약한 호기';
+  if (b === 0) return '평상 호흡'; if (b < .5) return '약한 흡기'; if (b < 1) return '흡기'; return '최대 흡기';
+}
+function syncPostureUI() {
+  $('breath').value = POSE.breath; $('breathO').textContent = breathText(POSE.breath);
+  $('posS').value = POSE.pos; $('holdT').checked = POSE.hold;
+}
+function updatePostureBadge(busy) {
+  const el = $('pstate');
+  if (busy) { el.innerHTML = '<b>호흡·자세 반영 중…</b>'; return; }
+  const P = postureParams(), parts = [];
+  const lz = P.si + BR.side * P.s * Math.tanh(-60 / 50), lx = P.s > 0 ? LIVER_G[0] : P.s < 0 ? -LIVER_G[1] : 0;   // right lobe
+  const cm = v => (Math.abs(v) / 10).toFixed(1) + ' cm';
+  if (Math.abs(lz) >= 1) parts.push(`간 ${lz < 0 ? '아래로' : '위로'} ${cm(lz)}`);
+  if (lx) parts.push(`간 환자 ${lx > 0 ? '왼쪽' : '오른쪽'}으로 ${cm(lx)}`);
+  if (Math.abs(P.elev) >= 1) parts.push(`늑골 앞끝 ${P.elev > 0 ? '위로' : '아래로'} ${cm(P.elev)}`);
+  if (P.s) parts.push(`중력: 환자 ${P.s > 0 ? '왼쪽' : '오른쪽'}(침대 쪽)`);
+  el.innerHTML = `<b>${breathText(P.b)} · ${POSKO[POSE.pos]}</b>` + (parts.length ? '<br>' + parts.join(' · ') : '<br>모델 기준 상태');
+}
+let postureBusy = false, posturePending = false;
+async function applyPosture() {
+  if (postureBusy) { posturePending = true; return; }
+  postureBusy = true; updatePostureBadge(true);
+  await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));   // let the badge paint before the heavy work
+  try {
+    const P = postureParams();
+    if (!P.b && !P.s) { DEF = null; VOLU8 = VOL0; }
+    else { DEF = buildFields(P); warpVolume(DEF); VOLU8 = VBUF; }
+    volTex.image.data = VOLU8; volTex.needsUpdate = true;
+    buildStomachMap(); deformMeshes();
+    rebaseProbe();
+  } catch (err) { console.error(err); }
+  finally { postureBusy = false; syncPostureUI(); updatePostureBadge(); }
+  if (posturePending) { posturePending = false; applyPosture(); }
+}
+function rebaseProbe() {
+  if (!state.view) return;
+  state.base = basePose(state.view);
+  moveProbeTo(currentPose(), true, 0); setOrientation(state.base); state.dirty = true;
 }
 
 /* ---------- volume texture + fan (scan plane) */
@@ -914,6 +1248,7 @@ function selectView(id, opts = {}) {
   document.querySelectorAll('#viewList button').forEach(b => b.setAttribute('aria-current', String(+b.dataset.id === id)));
   document.querySelector(`#viewList button[data-id="${id}"]`)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   $('iProbe').textContent = v.probe; $('iBreath').textContent = v.breath;
+  if (v.rec) $('recBtn').title = `이 영상의 교재 권장 상태로: ${breathText(v.rec[0])} · ${POSKO[v.rec[1]]}`;
   $('iCheck').innerHTML = v.check.map(c => `<li>${c}</li>`).join('');
   setOrientation(state.base);
   loadRealImage(v.id);
@@ -1037,6 +1372,15 @@ function wireUI() {
   $('usLabT').addEventListener('change', e => { US.labels = e.target.checked; state.dirty = true; });
   $('usSegT').addEventListener('change', e => { US.seg = e.target.checked; state.dirty = true; });
   $('stomachS').addEventListener('change', e => { US.stomach = e.target.value; state.dirty = true; });
+  $('breath').addEventListener('input', e => { $('breathO').textContent = breathText(+e.target.value); });
+  $('breath').addEventListener('change', e => { POSE.breath = +e.target.value; applyPosture(); });
+  $('posS').addEventListener('change', e => { POSE.pos = e.target.value; applyPosture(); });
+  $('holdT').addEventListener('change', e => { POSE.hold = e.target.checked; if (DEF) rebaseProbe(); });
+  $('recBtn').addEventListener('click', () => {
+    const r = state.view && state.view.rec; if (!r) return;
+    if (POSE.breath === r[0] && POSE.pos === r[1]) return;
+    POSE.breath = r[0]; POSE.pos = r[1]; syncPostureUI(); applyPosture();
+  });
   $('gain').addEventListener('input', e => { US.gain = +e.target.value; state.dirty = true; });
   $('depth').addEventListener('input', e => { US.depth = +e.target.value; $('depthO').textContent = US.depth / 10 + ' cm'; setupScan(); state.dirty = true; });
   const about = $('about');
@@ -1105,12 +1449,12 @@ function loop() { frame(Math.min(.05, clock.getDelta())); requestAnimationFrame(
     if (typeof DecompressionStream === 'undefined') throw new Error('이 브라우저는 압축 해제(DecompressionStream)를 지원하지 않습니다. 최신 Chrome·Edge·Firefox·Safari를 사용해 주세요.');
     const V = A.volume;
     [NX, NY, NZ] = V.dims; [LO0, LO1, LO2] = V.lo; PITCH = V.pitch; IP = 1 / PITCH;
-    VOLU8 = new Uint8Array(await inflate(V.data));
+    VOLU8 = VOL0 = new Uint8Array(await inflate(V.data));
     buildStomachMap();
     buildVolumeTexture();
     await buildMeshes();
     buildProbe();
-    setupScan(); buildList(); buildLegend(); wireUI(); resize();
+    setupScan(); buildList(); buildLegend(); wireUI(); syncPostureUI(); updatePostureBadge(); resize();
     let start = 1; try { start = +localStorage.getItem('lus-view') || 1; } catch (e) {}
     if (!VIEWS.some(v => v.id === start)) start = VIEWS[0].id;
     // park the probe above the abdomen, then animate onto the first view
@@ -1118,7 +1462,7 @@ function loop() { frame(Math.min(.05, clock.getDelta())); requestAnimationFrame(
     selectView(start);
     camera.position.copy(camAnim.pos).add(new THREE.Vector3(0, 20, 40)); controls.target.copy(camAnim.target);
     $('loading').classList.add('done');
-    window.__atlas = { frame, selectView, state, probe, anim, transformToPose, basePose, currentPose, codeP, VIEWS };
+    window.__atlas = { frame, selectView, state, probe, anim, transformToPose, basePose, currentPose, codeP, VIEWS, POSE, applyPosture, isBusy: () => postureBusy, camera, controls };
     loop();
   } catch (err) { console.error(err); fail('불러오기 실패: ' + err.message); }
 })();
