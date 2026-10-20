@@ -188,6 +188,7 @@ dialog p,dialog li{font-size:13px;color:#c9d0d6;line-height:1.65}
       <div class="usbar">
         <label class="tg"><input type="checkbox" id="usLabT" checked>구조 이름</label>
         <label class="tg"><input type="checkbox" id="usSegT">분절 색</label>
+        <label class="sl">위 내용<select id="stomachS" style="background:#0d1115;border:1px solid #2a323b;border-radius:4px;padding:1px 2px"><option value="gut">공복(혼합 에코)</option><option value="gas">가스(앙와위)</option><option value="water">물 마신 후</option></select></label>
         <label class="sl">게인<input type="range" id="gain" min="0.5" max="1.8" step="0.05" value="1"></label>
         <label class="sl">깊이<input type="range" id="depth" min="100" max="200" step="10" value="150"><output id="depthO">15 cm</output></label>
       </div>
@@ -220,10 +221,10 @@ dialog p,dialog li{font-size:13px;color:#c9d0d6;line-height:1.65}
 <dialog id="about">
   <h3>자료와 한계</h3>
   <p><b>3D 해부 자료</b>: BodyParts3D, © The Database Center for Life Science, CC BY-SA 2.1 JP. 장기·혈관 메시는 원본을 단순화했습니다. 이 페이지의 파생 데이터(<code>data/anatomy.js</code>)도 같은 라이선스를 따릅니다.</p>
-  <p><b>Couinaud 분절</b>: 원본의 분절 메시는 라벨이 실제 위치와 어긋나 있어 다시 계산했습니다. Couinaud처럼 구역은 간정맥이 지나는 면으로, 분절은 문맥 분지가 맡는 영역으로 나눴습니다. 좌우 간은 담낭와와 중간정맥 본간을 잇는 면(Cantlie 선), 우전·우후 구역은 우간정맥, S2·S3는 좌간정맥, S3·S4는 좌문맥 제대부를 지나는 제대열(겸상인대 선)로 나누고, 각 구역 안에서는 가장 가까운 분절 문맥 가지의 영역으로 S5/S8, S6/S7, S4a/S4b를 정했습니다. 미상엽(S1)은 원본 미상엽 메시를 사용했습니다. 이 모델의 문맥 가지는 몇 단계에서 끝나므로 경계는 근사입니다. 용어는 Brisbane 2000(Strasberg 외, HPB 2000)을 따릅니다.</p>
-  <p><b>초음파 영상</b>: 조직별 에코 강도, 감쇠, 경계면 반사, 스펙클, 뼈·가스 음영, 액체 뒤 후방 증강, 횡격막 거울상을 단순한 규칙으로 흉내 낸 것입니다. 실제 영상의 질감과 인공물을 대신하지 않습니다.</p>
+  <p><b>Couinaud 분절</b>: 원본의 분절 메시는 라벨이 실제 위치와 어긋나 있어 다시 계산했습니다. Couinaud처럼 구역은 간정맥이 지나는 면으로, 분절은 문맥 분지가 맡는 영역으로 나눴습니다. 좌우 간은 담낭와와 중간간정맥 본간을 잇는 면(Cantlie 선), 우전·우후 구역은 우간정맥 본간, 좌내측·좌외측 구역은 좌문맥 제대부를 지나는 제대열(겸상인대 선)로 나누고, 각 구역 안에서는 가장 가까운 분절 문맥 가지의 영역으로 S5/S8, S6/S7(머리–꼬리 거리에 2배 가중), S4a/S4b, S2/S3를 정했습니다. S2·S3는 P2·P3 문맥 영역이며 좌간정맥은 대략적인 경계입니다. 미상엽(S1)은 원본 미상엽 메시를 사용했습니다. 이 모델의 문맥 가지는 몇 단계에서 끝나므로 경계는 근사입니다. 용어는 Brisbane 2000(Strasberg 외, HPB 2000)을 따릅니다.</p>
+  <p><b>초음파 영상</b>: 조직별 에코 강도, 감쇠, 경계면 반사(간정맥 벽은 빔이 수직일 때만 밝음), 스펙클, 뼈 음영, 장 가스의 밝은 경계와 지저분한 음영·잔향, 액체 뒤 후방 증강, 횡격막 거울상, 폐의 링다운(탐촉자를 머리 쪽으로 많이 눕힐 때)과 A선을 단순한 규칙으로 흉내 낸 것입니다. 위는 공복 상태의 혼합 에코를 기본으로 하고, 영상 아래 '위 내용'에서 앙와위 가스와 물 마신 뒤 상태로 바꿀 수 있습니다. 실제 영상의 질감과 인공물을 대신하지 않습니다.</p>
   <p><b>실제 영상 넣기</b>: <code>us_images/01.jpg</code> ~ <code>17.jpg</code>(또는 .png)를 두면 해당 영상 옆에 자동으로 나타납니다. 영상 칸에 파일을 끌어다 놓아도 이 브라우저에만 저장됩니다.</p>
-  <p><b>표준영상 목록</b>: 사용자가 정한 17개 구성을 따랐습니다. 참고: 대한초음파의학회 상복부 초음파 표준영상(일반 12·정밀 15), 국립암센터 간암 검진 질지침.</p>
+  <p><b>표준영상 목록</b>: 복부초음파 강의 시리즈(Vol.01–19) 교재의 "복부초음파 기본 17 VIEW"(교재 p.42) 순서와 이름을 따랐습니다(1–14 앙와위, 15–17 좌측와위). 참고: 대한초음파의학회 상복부 초음파 표준영상(일반 12·정밀 15), 국립암센터 간암 검진 질지침.</p>
   <form method="dialog"><button class="btn">닫기</button></form>
 </dialog>
 
@@ -266,7 +267,7 @@ function def(name, o) {
 }
 // kind: 0 tissue, 1 fluid, 2 bone, 3 air(lung/outside), 4 bowel gas
 def('out', { col: '#000000', echo: 0, att: 5, kind: 3, grp: 'out', a: 0 });
-def('soft', { ko: '지방·결합조직', col: '#4b423e', echo: .55, att: .65, wall: .1, a: .5 });
+def('soft', { ko: '지방·결합조직', col: '#4b423e', echo: .6, att: .65, wall: .1, a: .5 }); // retroperitoneal/mesenteric fat: brighter than a normal pancreas (p.153 grade 0)
 def('fat', { ko: '피하지방', col: '#6b5f46', echo: .2, att: .55, wall: .15, a: .5 });
 def('skin', { ko: '피부', col: '#d4b293', echo: .95, att: .9, wall: .3, a: .6 });
 def('muscle', { ko: '복벽 근육', col: '#7c3e37', echo: .38, att: .85, wall: .35, a: .55 });
@@ -277,52 +278,98 @@ def('s4b', { ab: 'S4b', ko: SEGKO[4], col: SEGCOL[4], echo: .5, att: .5, grp: 'l
 const PV = { echo: .02, att: .1, kind: 1, wall: .95 }, HV = { echo: .02, att: .1, kind: 1, wall: .12 }, AR = { echo: .03, att: .1, kind: 1, wall: .6 };
 def('mpv', { ...PV, ab: 'MPV', ko: '주문맥', col: '#6a3fc7' });
 def('rpv', { ...PV, ab: 'RPV', ko: '우문맥', col: '#6a3fc7' });
+def('rapv', { ...PV, grp: 'rpv', ab: 'RAPV', ko: '우문맥 전분지', col: '#6a3fc7' });
+def('rppv', { ...PV, grp: 'rpv', ab: 'RPPV', ko: '우문맥 후분지', col: '#6a3fc7' });
 def('lpv', { ...PV, ab: 'LPV', ko: '좌문맥', col: '#6a3fc7' });
 def('splv', { ...PV, wall: .5, ab: 'SV', ko: '비정맥', col: '#7c55d6' });
 def('smv', { ...PV, wall: .5, ab: 'SMV', ko: '상장간막정맥', col: '#7c55d6' });
 def('rhv', { ...HV, ab: 'RHV', ko: '우간정맥', col: '#1f8ce0' });
-def('mhv', { ...HV, ab: 'MHV', ko: '중간정맥', col: '#1f8ce0' });
+def('mhv', { ...HV, ab: 'MHV', ko: '중간간정맥', col: '#1f8ce0' });
 def('lhv', { ...HV, ab: 'LHV', ko: '좌간정맥', col: '#1f8ce0' });
 def('ivc', { ...HV, wall: .3, ab: 'IVC', ko: '하대정맥', col: '#1767b8' });
 def('renv', { ...HV, wall: .3, ab: 'RV', ko: '신정맥', col: '#2a78c9' });
 def('aorta', { ...AR, ab: 'Ao', ko: '대동맥', col: '#e04848' });
-def('celiac', { ...AR, ab: 'CA', ko: '복강동맥·간동맥', col: '#ee6a5f' });
+def('celiac', { ...AR, ab: 'CA', ko: '복강동맥', col: '#ee6a5f' });
 def('sma', { ...AR, ab: 'SMA', ko: '상장간막동맥', col: '#ee6a5f' });
 def('spla', { ...AR, ab: 'SA', ko: '비동맥', col: '#ee6a5f' });
 def('rena', { ...AR, ab: 'RA', ko: '신동맥', col: '#ee6a5f' });
+// hepatic artery (CHA/PHA, split from 'celiac') and GDA, added by tools/anatomy_fixes.py; same grp as the celiac trunk so
+// the label change inside one arterial lumen draws no wall
+for (const [n, ab, ko] of [['ha', 'HA', '간동맥'], ['gda', 'GDA', '위십이지장동맥']]) if (LBL[n] !== undefined) def(n, { ...AR, ab, ko, col: '#ee6a5f', grp: 'celiac' });
 def('gb', { ab: 'GB', ko: '담낭', col: '#3f9c47', echo: 0, att: .02, kind: 1, wall: .85 });
-def('bile', { ab: 'CBD', ko: '간외담관', col: '#2a7a34', echo: .02, att: .1, kind: 1, wall: .9 });
+def('bile', { ab: 'CBD', ko: '총담관', col: '#2a7a34', echo: .02, att: .1, kind: 1, wall: .9 });
+def('lhd', { ab: 'LHD', ko: '좌간관', col: '#2a7a34', echo: .02, att: .1, kind: 1, wall: .9, grp: 'bile' }); // intrahepatic left duct, split from 'bile'
 def('pduct', { ab: 'PD', ko: '주췌관', col: '#2a7a34', echo: .05, att: .1, kind: 1, wall: .7 });
-def('pancreas', { ab: 'Panc', ko: '췌장', col: '#efbf88', echo: .66, att: .6, wall: .3 });
+def('pancreas', { ab: 'Panc', ko: '췌장', col: '#efbf88', echo: .55, att: .6, wall: .15 }); // liver <= pancreas < retroperitoneal fat (p.6, p.141, p.153)
 def('spleen', { ab: 'Spl', ko: '비장', col: '#93305a', echo: .55, att: .5, wall: .45 });
-def('rkid', { ab: 'RK', ko: '우신', col: '#a85c4c', echo: .34, att: .5, wall: .5, grp: 'kidney' });
-def('lkid', { ab: 'LK', ko: '좌신', col: '#a85c4c', echo: .34, att: .5, wall: .5, grp: 'kidney' });
+// medulla < cortex <= liver < spleen < sinus (p.6); normal liver = or slightly > renal cortex (Vol10 02:33).
+// Without a medulla label the kidney code is blended parenchyma (.46); once the volume build adds 'medulla' (pyramids, .15) the cortex is .47.
+const HAS_MED = LBL.medulla !== undefined, CORTEX = HAS_MED ? .47 : .46;
+def('rkid', { ab: 'RK', ko: '우신', col: '#a85c4c', echo: CORTEX, att: .5, wall: .5, grp: 'kidney' });
+def('lkid', { ab: 'LK', ko: '좌신', col: '#a85c4c', echo: CORTEX, att: .5, wall: .5, grp: 'kidney' });
+if (HAS_MED) def('medulla', { ko: '신수질', col: '#7a3c32', echo: .15, att: .45, wall: .1, grp: 'kidney' });
 def('sinus', { ko: '신동', col: '#eadbbc', echo: .85, att: .7, wall: .2, grp: 'kidney' });
 def('adrenal', { ab: 'Adr', ko: '부신', col: '#e0a03c', echo: .42, att: .5 });
 def('stomach', { ab: 'St', ko: '위', col: '#ee9fb2', echo: .36, att: .8, wall: .75 });
 def('duod', { ab: 'Duo', ko: '십이지장', col: '#e2869d', echo: .38, att: .8, wall: .65 });
 def('colon', { ab: 'Col', ko: '대장', col: '#c49f7b', echo: .9, att: 5, kind: 4, wall: 1 });
-def('diaph', { ab: '', ko: '횡격막', col: '#d98c6a', echo: 1.05, att: .8, wall: .6 });
+def('diaph', { ab: '', ko: '횡격막', col: '#d98c6a', echo: .36, att: .8, wall: .8 }); // muscle: hypoechoic; the bright dome line is the lung (air) interface
 def('psoas', { ab: 'Psoas', ko: '요근', col: '#9a4a40', echo: .42, att: .85 });
 def('ribs', { ab: 'Rib', ko: '늑골', col: '#ece6d8', kind: 2, echo: 1, att: 9, wall: 1.4 });
 def('cart', { ab: '', ko: '늑연골', col: '#c9d2d8', echo: .12, att: 1.6, wall: .5 });
 def('spine', { ab: 'Spine', ko: '척추', col: '#e6dcc6', kind: 2, echo: 1, att: 9, wall: 1.4 });
 def('lung', { ab: 'Lung', ko: '폐(공기)', col: '#2a3550', kind: 3, echo: 0, att: 9, wall: 1.3, a: .55 });
-def('heart', { ab: 'Heart', ko: '심장', col: '#8c2f2f', echo: .2, att: .3, wall: .5 });
+def('heart', { ab: 'Heart', ko: '심장', col: '#8c2f2f', echo: .3, att: .3, wall: .6 }); // myocardium; the blood pool inside is carved at render time in renderUS
 for (let c = 0; c < 256; c++) if (!INFO[c]) INFO[c] = INFO[0];
 const ECHO = new Float32Array(256), ATT = new Float32Array(256), KIND = new Uint8Array(256), WALL = new Float32Array(256), GRP = new Int16Array(256);
 const grpIds = {};
 INFO.forEach((o, c) => { ECHO[c] = o.echo; ATT[c] = o.att; KIND[c] = o.kind; WALL[c] = o.wall; GRP[c] = grpIds[o.grp] ??= Object.keys(grpIds).length; });
 const S1 = LBL.s1, LIVERG = grpIds.liver, S2 = LBL.s2, S3 = LBL.s3, S4 = LBL.s4, S4B = LBL.s4b;
+const STOM = LBL.stomach, DUOD = LBL.duod, COLON = LBL.colon, HEART = LBL.heart, SPLEEN = LBL.spleen;
+const GUT = new Uint8Array(256); GUT[STOM] = GUT[DUOD] = GUT[COLON] = 1;
+function vnoise(x, y, z, s, seed) {     // smooth value noise on an s-mm lattice (lumen contents)
+  const fx = x / s, fy = y / s, fz = z / s, ix = Math.floor(fx), iy = Math.floor(fy), iz = Math.floor(fz), tx = fx - ix, ty = fy - iy, tz = fz - iz;
+  let v = 0;
+  for (let c = 0; c < 8; c++) { const ox = c & 1, oy = c >> 1 & 1, oz = c >> 2; v += hash3(ix + ox, iy + oy, iz + oz + seed) * (ox ? tx : 1 - tx) * (oy ? ty : 1 - ty) * (oz ? tz : 1 - tz); }
+  return v;
+}
+const HVW = new Uint8Array(256); for (const n of ['rhv', 'mhv', 'lhv']) HVW[LBL[n]] = 1;
+// one continuous lumen split into several labels: no wall echo across it (value = lowest z where the pair counts as one lumen)
+const SAMEZ = new Float32Array(65536).fill(1e9);
+for (const [a, b, z0 = -1e9] of [['mpv', 'lpv'], ['mpv', 'rpv'], ['lpv', 'rpv'], ['mpv', 'smv'], ['smv', 'splv'], ['ivc', 'mhv'], ['ivc', 'lhv'], ['lhv', 'mhv'],
+  ['ivc', 'renv'], ['aorta', 'celiac'], ['celiac', 'spla'], ['aorta', 'rena'], ['aorta', 'sma', 1050], ['ivc', 'rhv', 1156],
+  ['celiac', 'ha'], ['celiac', 'gda'], ['ha', 'gda'], ['mpv', 'rapv'], ['mpv', 'rppv'], ['lpv', 'rapv'], ['lpv', 'rppv']])
+  if (LBL[a] !== undefined && LBL[b] !== undefined) SAMEZ[LBL[a] << 8 | LBL[b]] = SAMEZ[LBL[b] << 8 | LBL[a]] = z0;
+// hepatic-vein wall: almost no margin echo, bright only where the beam meets the wall at a right angle (p.33, Vol03 08:24)
+function hvWall(c, x, y, z, dx, dy, dz) {
+  let gx = 0, gy = 0, gz = 0;
+  for (let i = -2; i <= 2; i++) for (let j = -2; j <= 2; j++) for (let k = -2; k <= 2; k++)
+    if (codeAt(x + 1.5 * i, y + 1.5 * j, z + 1.5 * k) === c) { gx += i; gy += j; gz += k; }
+  const n = Math.hypot(gx, gy, gz), cs = n > 0 ? Math.abs(gx * dx + gy * dy + gz * dz) / n : 0;
+  return WALL[c] + .55 * cs ** 6;
+}
+// stomach gas map: most anterior (smallest y) stomach voxel per (x,z) column; gas lies in the non-dependent lumen when supine
+let STYMIN = null;
+function buildStomachMap() {
+  STYMIN = new Float32Array(NX * NZ).fill(1e9);
+  for (let k = 0; k < NZ; k++) for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++)
+    if (VOLU8[i + NX * (j + NY * k)] === STOM && STYMIN[i + NX * k] > 1e8) STYMIN[i + NX * k] = LO1 + (j + .5) * PITCH;
+}
+function stomachGasAt(x, y, z) {
+  if (US.stomach !== 'gas' || !STYMIN || x < 25) return false;      // body/fundus only (patient left of midline); the antrum stays gasless
+  const i = Math.floor((x - LO0) * IP), k = Math.floor((z - LO2) * IP);
+  if (i < 0 || k < 0 || i >= NX || k >= NZ) return false;
+  return y - STYMIN[i + NX * k] < 9 && hash3(Math.floor(x / 12), 5, Math.floor(z / 12)) > .35; // patchy anterior gas cap
+}
 
 /* ---------- 3D mesh registry: mesh key -> codes, group, colour */
 const MESHDEF = {
   seg1: [[LBL.s1], 'liver'], seg2: [[LBL.s2], 'liver'], seg3: [[LBL.s3], 'liver'], seg4: [[LBL.s4, LBL.s4b], 'liver'],
   seg5: [[LBL.s5], 'liver'], seg6: [[LBL.s6], 'liver'], seg7: [[LBL.s7], 'liver'], seg8: [[LBL.s8], 'liver'],
-  mpv: [[LBL.mpv], 'vessel'], rpv: [[LBL.rpv], 'vessel'], lpv: [[LBL.lpv], 'vessel'], splv: [[LBL.splv], 'vessel'], smv: [[LBL.smv], 'vessel'],
+  mpv: [[LBL.mpv], 'vessel'], rpv: [[LBL.rpv, LBL.rapv, LBL.rppv], 'vessel'], lpv: [[LBL.lpv], 'vessel'], splv: [[LBL.splv], 'vessel'], smv: [[LBL.smv], 'vessel'],
   rhv: [[LBL.rhv], 'vessel'], mhv: [[LBL.mhv], 'vessel'], lhv: [[LBL.lhv], 'vessel'], ivc: [[LBL.ivc], 'vessel'], renv: [[LBL.renv], 'vessel'],
-  aorta: [[LBL.aorta], 'vessel'], celiac: [[LBL.celiac], 'vessel'], sma: [[LBL.sma], 'vessel'], spla: [[LBL.spla], 'vessel'], rena: [[LBL.rena], 'vessel'],
-  gb: [[LBL.gb], 'organ'], bile: [[LBL.bile], 'vessel'], pduct: [[LBL.pduct], 'vessel'],
+  aorta: [[LBL.aorta], 'vessel'], celiac: [[LBL.celiac], 'vessel'], ha: [[LBL.ha], 'vessel'], gda: [[LBL.gda], 'vessel'], sma: [[LBL.sma], 'vessel'], spla: [[LBL.spla], 'vessel'], rena: [[LBL.rena], 'vessel'],
+  gb: [[LBL.gb], 'organ'], bile: [[LBL.bile], 'vessel'], lhd: [[LBL.lhd], 'vessel'], pduct: [[LBL.pduct], 'vessel'],
   pancreas: [[LBL.pancreas], 'organ'], spleen: [[LBL.spleen], 'organ'], rkid: [[LBL.rkid], 'organ'], lkid: [[LBL.lkid], 'organ'], adrenal: [[LBL.adrenal], 'organ'],
   stomach: [[LBL.stomach], 'gi'], duod: [[LBL.duod], 'gi'], colon: [[LBL.colon], 'gi'],
   diaph: [[LBL.diaph], 'diaph'], psoas: [[LBL.psoas], 'gi'],
@@ -397,7 +444,7 @@ function applyOffsets(p, tilt, rot, slide) {
 /* ======================================================================
    Ultrasound simulator (CPU, polar buffer -> scan conversion)
    ====================================================================== */
-const US = { NL: 200, NS: 400, W: 520, depth: 150, gain: 1, labels: true, seg: false };
+const US = { NL: 200, NS: 400, W: 520, depth: 150, gain: 1, labels: true, seg: false, stomach: 'gut' };
 const usCanvas = $('usCanvas'), usCtx = usCanvas.getContext('2d');
 const usImg = document.createElement('canvas'), usImgCtx = usImg.getContext('2d');
 let VAL, TMP, LAB, MAP0, MAPW, IMG, mmpp, yTop, H;
@@ -436,49 +483,108 @@ function renderUS(pose) {
   const contact = codeP(add(E, mul(D, 2))) !== 0 && codeP(add(E, mul(D, 6))) !== 0;
   const ax = E[0] - D[0] * RC, ay = E[1] - D[1] * RC, az = E[2] - D[2] * RC;
   const kAtt = 0.03;
+  // probe pressure: the convex face indents skin and wall, so the wall lies under the face on every line.
+  // r0 = depth of the first body voxel per line; a lower envelope of it (min over +-4 lines, then a box over +-4 lines,
+  // never more than any line's own r0) pulls the shallow anatomy up, tapering to no shift at RCMP mm.
+  const RCMP = 60, R0 = new Float32Array(NL), R0E = new Float32Array(NL), SHIFT = new Float32Array(NL);
+  const squeeze = !!(state.view && state.view.compressBowel);   // per-view graded compression: colon gas pushed aside
   for (let l = 0; l < NL; l++) {
     const th = -FOV + 2 * FOV * l / (NL - 1), c = Math.cos(th), s = Math.sin(th);
     const dx = c * D[0] - s * L[0], dy = c * D[1] - s * L[1], dz = c * D[2] - s * L[2];
-    const sx = ax + dx * RC, sy = ay + dy * RC, sz = az + dz * RC;
-    let T = 1, prev = -1, ifcLeft = 0, ifcVal = 0, mirror = -1, inBone = false, inGas = false, outside = false, entered = false;
+    let r = 0; for (; r < 45; r += .75) if (codeAt(ax + dx * (RC + r), ay + dy * (RC + r), az + dz * (RC + r))) break;
+    R0[l] = r;
+  }
+  for (let l = 0; l < NL; l++) { let m = 1e9; for (let j = Math.max(0, l - 4); j <= Math.min(NL - 1, l + 4); j++) m = Math.min(m, R0[j]); R0E[l] = m; }
+  for (let l = 0; l < NL; l++) { let s = 0, n = 0; for (let j = Math.max(0, l - 4); j <= Math.min(NL - 1, l + 4); j++) { s += R0E[j]; n++; } SHIFT[l] = Math.min(25, s / n); }
+  for (let l = 0; l < NL; l++) {
+    const th = -FOV + 2 * FOV * l / (NL - 1), c = Math.cos(th), s = Math.sin(th);
+    const dx = c * D[0] - s * L[0], dy = c * D[1] - s * L[1], dz = c * D[2] - s * L[2];
+    const sx = ax + dx * RC, sy = ay + dy * RC, sz = az + dz * RC, S = SHIFT[l];
+    let T = 1, prev = -1, ifcLeft = 0, ifcLen = 3, ifcTail = .55, ifcVal = 0, mirror = -1, pl = -1, plV = 0, ringDown = false, rdA = 0;
+    let inBone = false, inGas = false, gasT = 0, gasK = 8, outside = false, entered = false, teresDone = false, sawSolid = false, gutK = 0, blood = false;
     const base = l * NS;
     for (let k = 0; k < NS; k++) {
-      const r = k * ds, x = sx + dx * r, y = sy + dy * r, z = sz + dz * r;
-      const code = contact ? codeAt(x, y, z) : 0;
-      LAB[base + k] = code;
-      if (!contact) { VAL[base + k] = 0; continue; }
+      const r = k * ds, ra = r < RCMP ? r + S * (1 - r / RCMP) : r;
+      const x = sx + dx * ra, y = sy + dy * ra, z = sz + dz * ra;
+      let code = contact ? codeAt(x, y, z) : 0;
+      if (!contact) { LAB[base + k] = 0; VAL[base + k] = 0; continue; }
       if (!entered) {                     // gel/compressed skin under the convex face: no echo, no loss
-        if (code === 0) { VAL[base + k] = r < 4 ? .25 * (1 - r / 4) : 0; continue; }
+        if (code === 0) { LAB[base + k] = 0; VAL[base + k] = r < 4 ? .25 * (1 - r / 4) : 0; continue; }
         entered = true;
       }
-      const kind = KIND[code];
-      // interfaces
-      if (prev >= 0 && code !== prev) {
-        let w = 0;
-        if (GRP[code] !== GRP[prev]) w = Math.max(WALL[code], WALL[prev]);
-        else if (GRP[code] === LIVERG && (code === S1 || prev === S1)) w = .55;           // ligamentum venosum fissure
-        else if (GRP[code] === LIVERG && z < 1124 && (((code === S3 || code === S2) && (prev === S4 || prev === S4B)) || ((prev === S3 || prev === S2) && (code === S4 || code === S4B)))) w = .6; // ligamentum teres
-        if (w > 0) { ifcVal = w; ifcLeft = 3; }
+      // a 1-3 voxel air gap where the ray grazes the voxelised skin is not loss of contact: carry on as the last tissue
+      if (code === 0 && !outside && mirror < 0 && pl < 0 && prev > 0 && r < 60 &&
+        (codeAt(x + dx * 1.5, y + dy * 1.5, z + dz * 1.5) || codeAt(x + dx * 3, y + dy * 3, z + dz * 3) || codeAt(x + dx * 4.5, y + dy * 4.5, z + dz * 4.5))) code = prev;
+      LAB[base + k] = code;
+      let kind = KIND[code], at = ATT[code];
+      if (GUT[code] && code !== prev) gutK = k;
+      if (code === COLON) kind = (k - gutK) * ds > 1.6 && !squeeze ? 4 : 0;   // colon gas behind its wall; a compressed (squeezed) loop shows its contents instead
+      else if (code === STOM && (k - gutK) * ds > 2.4 && stomachGasAt(x, y, z)) kind = 4;
+      // interfaces (none deep to lung, pleura or gas: nothing behind air returns an echo)
+      if (prev >= 0 && code !== prev && mirror < 0 && pl < 0 && !outside && !inGas) {
+        let w = 0, len = 3, tail = .55;
+        if (GRP[code] !== GRP[prev]) {
+          if (z >= SAMEZ[code << 8 | prev]) w = 0;                                                   // label change inside one lumen
+          else if (GRP[prev] === LIVERG && KIND[code] === 1) w = HVW[code] ? hvWall(code, x, y, z, dx, dy, dz) : WALL[code]; // liver|vessel: the vessel's own wall
+          else if (GRP[code] === LIVERG && KIND[prev] === 1) w = HVW[prev] ? hvWall(prev, x, y, z, dx, dy, dz) : WALL[prev];
+          else w = Math.max(WALL[code], WALL[prev]);
+        }
+        else if (GRP[code] === LIVERG && ((code === S1 && (prev === S2 || prev === S3)) || (prev === S1 && (code === S2 || code === S3)))) w = .55; // ligamentum venosum fissure: S1 | left lateral section only
+        else if (GRP[code] === LIVERG && z < 1124 && (((code === S3 || code === S2) && (prev === S4 || prev === S4B)) || ((prev === S3 || prev === S2) && (code === S4 || code === S4B)))) { // ligamentum teres
+          w = .6;
+          if (!teresDone) { teresDone = true; len = Math.max(3, Math.round(3 / ds)); tail = .85; T *= .7; } // round echogenic focus with a fibro-fatty shadow
+        }
+        if (w > 0) { ifcVal = w; ifcLeft = ifcLen = len; ifcTail = tail; }
       }
       let v = 0;
       if (outside) { v = 0; }
-      else if (mirror >= 0) {             // beyond the diaphragm/lung: mirror image of the liver
+      else if (mirror >= 0) {             // beyond the diaphragm/lung: mirror image of the liver (+ ring-down streaks)
         const m = 2 * mirror - k;
         v = m >= 0 ? VAL[base + m] * .5 : 0;
-      } else if (inBone || inGas) {
-        v = inGas ? T * (.25 + .5 * hash3(l >> 1, k >> 1, 7)) : 0;
-      } else {
+        if (ringDown) v = Math.max(v, rdA * Math.exp(-(k - mirror) * ds / 45) * (.7 + .3 * hash3(l, k >> 1, 13)));
+      } else if (pl >= 0) {               // aerated lung right under the wall: pleural line, then A-line reverberations
+        const n = Math.floor(k / pl);
+        v = (k % pl) < 3 && n >= 2 ? plV * Math.pow(.55, n - 1) : .03 * hash3(l >> 1, k >> 1, 9);
+      } else if (inGas) {                 // dirty shadow + reverberation of the bright gas line
+        const n = Math.floor(k / gasK);
+        v = gasT * ((.06 + .3 * hash3(l >> 1, k >> 2, 7)) * Math.exp(-(k - gasK) * ds / 18) + ((k % gasK) < 3 && n >= 2 ? .45 * Math.pow(.5, n - 1) : 0));
+      } else if (inBone) { v = 0; }
+      else {
+        let e = ECHO[code];
+        if (GUT[code]) {                        // gut signature: bright serosa, dark muscularis, bright submucosa, mixed lumen
+          const out = mm => codeAt(x + dx * mm, y + dy * mm, z + dz * mm) !== code;
+          const d = Math.min((k - gutK) * ds, out(.8) ? .4 : out(2.4) ? 1.6 : out(3.2) ? 2.8 : 9);
+          if (code === COLON && squeeze) at = .8;   // compressed loop: its wall attenuates like the stomach/duodenal wall, not like gas
+          if (d < .8) e = .75;
+          else if (d < 2.4) e = .16;
+          else if (d < 3.2) e = .65;
+          else if (code === STOM && US.stomach === 'water') { e = .03; at = .25; }
+          else { const h = vnoise(x, y, z, 4, 17); e = .05 + .5 * h * h; at = code === COLON && !squeeze ? .7 : .45; } // fluid + debris
+        } else if (code === HEART) {            // myocardial shell around an anechoic blood pool (the heart label is an ellipsoid, tools/build_volume.py)
+          const b = ((x - 22) / 62) ** 2 + ((y + 140) / 50) ** 2 + ((z - 1228) / 60) ** 2 < .72;
+          if (b) { e = .02; at = .2; }
+          if (b !== blood && prev === HEART) { ifcVal = .3; ifcLeft = ifcLen = 3; ifcTail = .55; }
+          blood = b;
+        }
         const u = hash3(Math.floor(x * 3.2), Math.floor(y * 3.2), Math.floor(z * 3.2));
         const sp = -Math.log(1 - .985 * u);
-        v = T * ECHO[code] * (.3 + .7 * sp);
+        v = T * e * (.3 + .7 * sp);
       }
-      if (ifcLeft > 0) { v += Math.min(T, 1.4) * ifcVal * (ifcLeft === 3 ? 1 : .55); ifcLeft--; }
+      if (ifcLeft > 0) { v += Math.min(T, 1.4) * ifcVal * (ifcLeft === ifcLen ? 1 : ifcTail); ifcLeft--; }
       // propagation
+      if (GRP[code] === LIVERG || code === SPLEEN) sawSolid = true;
       if (kind === 2 && !inBone) { inBone = true; T *= .06; }
-      else if (kind === 4 && !inGas) { inGas = true; T *= .55; }
-      else if (kind === 3 && mirror < 0 && !outside) { if (code === 0) outside = true; else mirror = k; }
-      if (inBone) T *= .9; else if (inGas) { if (kind !== 4) inGas = false; else T *= .992; }
-      else if (!outside && mirror < 0) T *= Math.exp(-(ATT[code] - .5) * kAtt * ds);
+      else if (kind === 4 && !inGas) { inGas = true; gasT = Math.min(T, 1.4); gasK = Math.max(k, 8); v += 1.2 * gasT; } // gas: near-total reflection, nothing deeper is imaged
+      else if (kind === 3 && mirror < 0 && pl < 0 && !outside) {
+        if (code === 0) outside = true;
+        else if (sawSolid) {              // lung deep to liver/spleen: diaphragm mirror; ring-down when the beam is laid far cranially
+          mirror = k;
+          ringDown = hash3(l >> 1, 3, 11) < .45 * Math.min(1, Math.max(0, (dz - .55) / .2));
+          rdA = .9 * Math.min(T, 1.2);
+        } else { pl = Math.max(k, 4); plV = Math.min(1.5, v); }
+      }
+      if (inBone) T *= .9;
+      else if (!inGas && !outside && mirror < 0 && pl < 0) T *= Math.exp(-(at - .5) * kAtt * ds);
       if (T > 2.3) T = 2.3;
       VAL[base + k] = v * (1 - .18 * r / depth) + (r < 4 ? .25 * (1 - r / 4) : 0);
       prev = code;
@@ -581,10 +687,16 @@ function drawOverlay(contact, cnt, sx_, sy_) {
   ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
   for (const it of items) {
     const w = ctx.measureText(it.t).width + 4;
-    let x = it.x + 6, y = it.y;
-    if (x + w > W - 18) x = it.x - 6 - w;
-    const box = [x - 2, y - 8, x + w, y + 8];
-    if (boxes.some(b => !(box[2] < b[0] || box[0] > b[2] || box[3] < b[1] || box[1] > b[3]))) continue;
+    // try the default side, then the other side, then +-10 px, before giving up on a label
+    const hitAny = bb => boxes.some(b => !(bb[2] < b[0] || bb[0] > b[2] || bb[3] < b[1] || bb[1] > b[3]));
+    const xr = it.x + 6 + w > W - 18 ? it.x - 6 - w : it.x + 6, xl = it.x - 6 - w;
+    let x = 0, y = 0, box = null;
+    for (const [cx, dy] of [[xr, 0], [xl, 0], [xr, -10], [xr, 10], [xl, -10], [xl, 10]]) {
+      if (cx < 0) continue;
+      const bb = [cx - 2, it.y + dy - 8, cx + w, it.y + dy + 8];
+      if (!hitAny(bb)) { x = cx; y = it.y + dy; box = bb; break; }
+    }
+    if (!box) continue;
     boxes.push(box);
     ctx.fillStyle = it.seg ? SEGCOL[it.seg] : '#ffffff';
     ctx.beginPath(); ctx.arc(it.x, it.y, 2.2, 0, Math.PI * 2); ctx.fill();
@@ -791,6 +903,7 @@ function selectView(id, opts = {}) {
   state.view = v; state.base = basePose(v); state.tilt = state.rot = state.slide = 0;
   for (const [k, o] of [['tilt', '°'], ['rot', '°'], ['slide', ' mm']]) { $(k).value = 0; $(k + 'O').textContent = '0' + o; }
   if (US.depth !== v.depth) { US.depth = v.depth; $('depth').value = v.depth; $('depthO').textContent = v.depth / 10 + ' cm'; setupScan(); }
+  US.stomach = v.stomach || 'gut'; $('stomachS').value = US.stomach; state.dirty = true;
   const pose = currentPose();
   moveProbeTo(pose, opts.animate !== false);
   frameCamera(pose);
@@ -808,7 +921,15 @@ function selectView(id, opts = {}) {
 function setOrientation(p) {
   const L = p.L, cand = [['환자 오른쪽', [-1, 0, 0]], ['환자 왼쪽', [1, 0, 0]], ['머리 쪽', [0, 0, 1]], ['발 쪽', [0, 0, -1]], ['앞쪽(배)', [0, -1, 0]], ['뒤쪽(등)', [0, 1, 0]]];
   cand.sort((a, b) => dot(L, b[1]) - dot(L, a[1]));
-  $('orient').innerHTML = `화면 왼쪽(<b>●</b> 마커 쪽) = <b>${cand[0][0]}</b>` + (dot(L, cand[1][1]) > .35 ? `, 약간 ${cand[1][0]}` : '') + ` · 위쪽 = 프로브가 닿은 피부`;
+  // second axis: a near-tie (within .15) or a large one (> .55) reads as 'between the two (oblique)', not 'slightly';
+  // any further axis above .35 is listed as well
+  const d0 = dot(L, cand[0][1]), d1 = dot(L, cand[1][1]), both = d1 > .55 || d0 - d1 < .15;
+  const extra = cand.slice(both ? 2 : 1).filter(c => dot(L, c[1]) > .35).map(c => c[0]);
+  const NEAR = { '환자 오른쪽': '환자 오른쪽', '환자 왼쪽': '환자 왼쪽', '머리 쪽': '머리 쪽', '발 쪽': '발 쪽', '앞쪽(배)': '배 쪽', '뒤쪽(등)': '등 쪽' };
+  const ns = cand.map(c => [c[0], -dot(p.D, c[1])]).sort((a, b) => b[1] - a[1]);   // the skin side the probe sits on (-D)
+  const nearTxt = ns[0][1] - ns[1][1] < .1 ? `${NEAR[ns[0][0]]}과 ${NEAR[ns[1][0]]} 사이` : NEAR[ns[0][0]];   // near-tie: name both sides
+  $('orient').innerHTML = `화면 왼쪽(<b>●</b> 마커 쪽) = ` + (both ? `<b>${cand[0][0]}</b>·<b>${cand[1][0]}</b> 사이(비스듬히)` : `<b>${cand[0][0]}</b>`)
+    + (extra.length ? `, 약간 ${extra.join('·')}` : '') + ` · 위쪽 = 프로브가 닿은 피부(${nearTxt})`;
 }
 
 /* ---------- highlight structures cut by the plane */
@@ -913,6 +1034,7 @@ function wireUI() {
   $('fanUsT').addEventListener('change', e => { fan.material.uniforms.mode.value = e.target.checked ? 1 : 0; });
   $('usLabT').addEventListener('change', e => { US.labels = e.target.checked; state.dirty = true; });
   $('usSegT').addEventListener('change', e => { US.seg = e.target.checked; state.dirty = true; });
+  $('stomachS').addEventListener('change', e => { US.stomach = e.target.value; state.dirty = true; });
   $('gain').addEventListener('input', e => { US.gain = +e.target.value; state.dirty = true; });
   $('depth').addEventListener('input', e => { US.depth = +e.target.value; $('depthO').textContent = US.depth / 10 + ' cm'; setupScan(); state.dirty = true; });
   const about = $('about');
@@ -982,6 +1104,7 @@ function loop() { frame(Math.min(.05, clock.getDelta())); requestAnimationFrame(
     const V = A.volume;
     [NX, NY, NZ] = V.dims; [LO0, LO1, LO2] = V.lo; PITCH = V.pitch; IP = 1 / PITCH;
     VOLU8 = new Uint8Array(await inflate(V.data));
+    buildStomachMap();
     buildVolumeTexture();
     await buildMeshes();
     buildProbe();
